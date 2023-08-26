@@ -5,10 +5,9 @@ import com.github.ducoral.formula.scanner.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
 
 import static com.github.ducoral.formula.parser.Expression.*;
+import static com.github.ducoral.formula.scanner.TokenType.*;
 
 public class Parser {
 
@@ -27,12 +26,9 @@ public class Parser {
     }
 
     private Expression parseExpression() {
-        ignoreWhitspace();
-
-        if (tokenizer.isType(TokenType.OPERATOR))
-            return parseUnaryOperation();
-        else
-            return parseBinaryOperation(operators.operators());
+        return tokenizer.isEOF()
+                ? new Empty()
+                : parseBinaryOperation(0);
     }
 
     private Expression parseScope() {
@@ -43,38 +39,42 @@ public class Parser {
     }
 
     private Expression parseUnaryOperation() {
-        var operator = accept(TokenType.OPERATOR);
-        return new UnaryOperation(operator.lexeme(), parseExpression());
+        var operator = accept(OPERATOR);
+        return new UnaryOperation(operator.lexeme(), parseTerm());
     }
 
-    private Expression parseBinaryOperation(Iterator<Set<String>> iterator) {
-        if (!iterator.hasNext())
+    private Expression parseBinaryOperation(int precedence) {
+        if (!operators.hasOperatorsWithPrecedence(precedence))
             return parseTerm();
 
-        var operators = iterator.next();
-        var operation = parseBinaryOperation(iterator);
-        while (tokenizer.isLexeme(operators))
-            operation = new BinaryOperation(operation, accept(TokenType.OPERATOR).lexeme(), parseExpression());
+        var operation = parseBinaryOperation(precedence + 1);
+        while (tokenizer.isOperatorOfPrecedence(precedence))
+            operation = new BinaryOperation(
+                    operation,
+                    accept(OPERATOR).lexeme(),
+                    parseBinaryOperation(precedence + 1));
         return operation;
     }
 
     private Expression parseTerm() {
         if (tokenizer.isLexeme("("))
             return parseScope();
-        else if (tokenizer.isType(TokenType.IDENTIFIER))
+        else if (tokenizer.isType(IDENTIFIER))
             return parseIdentifierOrFunction();
-        else if (tokenizer.isType(TokenType.NUMBER)) {
-            var value = new BigDecimal(accept(TokenType.NUMBER).lexeme());
+        else if (tokenizer.isType(NUMBER)) {
+            var value = new BigDecimal(accept(NUMBER).lexeme());
             return new Literal(value);
-        } else if (tokenizer.isType(TokenType.STRING)) {
-            var value = accept(TokenType.STRING).lexeme();
+        } else if (tokenizer.isType(STRING)) {
+            var value = accept(STRING).lexeme();
             return new Literal(value);
+        } else if (tokenizer.isType(OPERATOR)) {
+            return parseUnaryOperation();
         } else
             throw new FormulaException("Token não esperado: ", tokenizer.token());
     }
 
     private Expression parseIdentifierOrFunction() {
-        var identifier = accept(TokenType.IDENTIFIER);
+        var identifier = accept(IDENTIFIER);
         return tokenizer.isLexeme("(")
                 ? parseFunction(identifier)
                 : new Identifier(identifier.lexeme());
@@ -98,7 +98,6 @@ public class Parser {
         if (tokenizer.isType(type)) {
             var token = tokenizer.token();
             tokenizer.tokenize();
-            ignoreWhitspace();
             return token;
         } else
             throw new FormulaException("Token inválido: %s. Era esperado %s no lugar", type, tokenizer.token().type());
@@ -107,15 +106,9 @@ public class Parser {
     private void accept(String lexeme) {
         if (tokenizer.isLexeme(lexeme)) {
             tokenizer.tokenize();
-            ignoreWhitspace();
         } else
             throw new FormulaException(
                     "Token inválido: %s. Era esperado %s no lugar",
                     tokenizer.token().lexeme(), lexeme);
-    }
-
-    private void ignoreWhitspace() {
-        if (tokenizer.isType(TokenType.WHITESPACE))
-            tokenizer.tokenize();
     }
 }

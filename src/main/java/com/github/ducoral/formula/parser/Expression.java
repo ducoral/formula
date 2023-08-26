@@ -5,6 +5,7 @@ import java.util.List;
 public interface Expression {
 
     interface Visitor {
+
         void visit(Literal literal);
 
         void visit(Identifier identifier);
@@ -17,6 +18,12 @@ public interface Expression {
     }
 
     void accept(Visitor visitor);
+
+    class Empty implements Expression {
+        @Override
+        public void accept(Visitor visitor) {
+        }
+    }
 
     record Literal(Object value) implements Expression {
         @Override

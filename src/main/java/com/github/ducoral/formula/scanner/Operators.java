@@ -54,6 +54,16 @@ public class Operators {
         return operators.iterator();
     }
 
+    public boolean hasOperatorsWithPrecedence(int precedence) {
+        return precedence >= 0 && precedence < operators.size();
+    }
+
+    public Set<String> operatorOfPrecedence(int precedence) {
+        return hasOperatorsWithPrecedence(precedence)
+                ? operators.get(precedence)
+                : Set.of();
+    }
+
     public void reset() {
         offset = 0;
         tokenizing.clear();

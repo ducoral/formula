@@ -2,8 +2,6 @@ package com.github.ducoral.formula.scanner;
 
 import com.github.ducoral.formula.FormulaException;
 
-import java.util.Set;
-
 import static com.github.ducoral.formula.scanner.TokenType.*;
 
 public class Tokenizer {
@@ -38,8 +36,10 @@ public class Tokenizer {
         return token.lexeme().equals(lexeme);
     }
 
-    public boolean isLexeme(Set<String> lexemes) {
-        return lexemes.contains(token.lexeme());
+    public boolean isOperatorOfPrecedence(int precedence) {
+        return operators
+                .operatorOfPrecedence(precedence)
+                .contains(token.lexeme());
     }
 
     public boolean isEOF() {
@@ -55,9 +55,9 @@ public class Tokenizer {
         operators.reset();
         lexeme.setLength(0);
 
-        if (current.isWhitespace())
-            tokenizeWhitespace();
-        else if (current.isIdentifierStart())
+        ignoreWhitespace();
+
+        if (current.isIdentifierStart())
             tokenizeIdentifier();
         else if (current.isDigit())
             tokenizeNumber();
@@ -73,12 +73,9 @@ public class Tokenizer {
             throw new FormulaException("Invalid character: %s", current);
     }
 
-    private void tokenizeWhitespace() {
-        var position = current.position();
-        appendLexemeAndNext();
+    private void ignoreWhitespace() {
         while (current.isWhitespace())
-            appendLexemeAndNext();
-        token = new Token(WHITESPACE, lexeme.toString(), position);
+            next();
     }
 
     private void tokenizeIdentifier() {
@@ -138,5 +135,4 @@ public class Tokenizer {
     private void next() {
         current = charReader.next();
     }
-
 }

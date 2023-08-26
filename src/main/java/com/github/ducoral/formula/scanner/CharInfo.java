@@ -34,10 +34,6 @@ public record CharInfo(char value, Position position) {
                 || value == '`';
     }
 
-    public boolean isOperatorStart() {
-        return isOneOf('+', '-', '*', '/', '^', '=', '!', '>', '<', '&', '|');
-    }
-
     public boolean isSymbol() {
         return isOneOf('(', ')', '[', ']', '.', ',', ';');
     }
