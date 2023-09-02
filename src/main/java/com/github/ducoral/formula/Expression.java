@@ -1,4 +1,4 @@
-package com.github.ducoral.formula.parser;
+package com.github.ducoral.formula;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ public interface Expression {
 
         void visit(BinaryOperation binaryOperation);
 
-        void visit(Function function);
+        void visit(FunctionCall function);
     }
 
     void accept(Visitor visitor);
@@ -53,7 +53,7 @@ public interface Expression {
         }
     }
 
-    record Function(String name, List<Expression> parameters) implements Expression {
+    record FunctionCall(String name, List<Expression> parameters) implements Expression {
         @Override
         public void accept(Visitor visitor) {
             visitor.visit(this);

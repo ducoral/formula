@@ -1,6 +1,6 @@
-package com.github.ducoral.formula.scanner;
+package com.github.ducoral.formula;
 
-public class CharReader {
+class CharReader {
 
     private final char[] input;
 
@@ -10,18 +10,18 @@ public class CharReader {
 
     private int column;
 
-    public CharReader(String input) {
+    CharReader(String input) {
         this.input = input.toCharArray();
         index = -1;
         line = 0;
         column = -1;
     }
 
-    public boolean hasNext() {
+    boolean hasNext() {
         return (index + 1) < input.length;
     }
 
-    public CharInfo next() {
+    CharInfo next() {
         if (!hasNext())
             return CharInfo.EOF;
 

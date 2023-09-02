@@ -1,14 +1,14 @@
-package com.github.ducoral.formula.scanner;
+package com.github.ducoral.formula;
 
-import com.github.ducoral.formula.FormulaException;
+import static com.github.ducoral.formula.TokenType.*;
 
-import static com.github.ducoral.formula.scanner.TokenType.*;
-
-public class Tokenizer {
+class Tokenizer {
 
     private final CharReader charReader;
 
-    private final Operators operators;
+    private final OperatorParser operatorParser;
+
+    private final OperatorPrecedence operatorPrecedence;
 
     private final StringBuilder lexeme;
 
@@ -16,54 +16,58 @@ public class Tokenizer {
 
     private Token token;
 
-    public Tokenizer(CharReader charReader, Operators operators) {
+    Tokenizer(CharReader charReader, OperatorParser operatorParser, OperatorPrecedence operatorPrecedence) {
         this.charReader = charReader;
-        this.operators = operators;
+        this.operatorParser = operatorParser;
+        this.operatorPrecedence = operatorPrecedence;
         lexeme = new StringBuilder();
         current = charReader.next();
         tokenize();
     }
 
-    public Token token() {
+    Token token() {
         return token;
     }
 
-    public boolean isType(TokenType type) {
-        return token.type() == type;
+    boolean isType(TokenType... types) {
+        for (var type : types)
+            if (token.type() == type)
+                return true;
+        return false;
     }
 
-    public boolean isLexeme(String lexeme) {
+    boolean isLexeme(String lexeme) {
         return token.lexeme().equals(lexeme);
     }
 
-    public boolean isOperatorOfPrecedence(int precedence) {
-        return operators
+    boolean isOperatorOfPrecedence(int precedence) {
+        return operatorPrecedence
                 .operatorOfPrecedence(precedence)
                 .contains(token.lexeme());
     }
 
-    public boolean isEOF() {
+    boolean isEOF() {
         return token.isEOF();
     }
 
-    public void tokenize() {
+    void tokenize() {
+        ignoreWhitespace();
+
         if (current.isEOF()) {
             token = Token.EOF;
             return;
         }
 
-        operators.reset();
+        operatorParser.reset();
         lexeme.setLength(0);
-
-        ignoreWhitespace();
 
         if (current.isIdentifierStart())
             tokenizeIdentifier();
-        else if (current.isDigit())
+        else if (current.isDigit() || current.is('.'))
             tokenizeNumber();
         else if (current.isStringDelimiter())
             tokenizeString();
-        else if (operators.isOperatorStart(current.value()))
+        else if (operatorParser.isOperatorStart(current.value()))
             tokenizeOperator();
         else if (current.isSymbol()) {
             token = Token.fromCharInfo(SYMBOL, current);
@@ -83,20 +87,43 @@ public class Tokenizer {
         appendLexemeAndNext();
         while (current.isIdentifierPart())
             appendLexemeAndNext();
-        token = new Token(IDENTIFIER, lexeme.toString(), position);
+        var tokenType = operatorParser.isOperator(lexeme.toString())
+                ? OPERATOR
+                : IDENTIFIER;
+        token = new Token(tokenType, lexeme.toString(), position);
     }
 
     private void tokenizeNumber() {
         var position = current.position();
+        appendDigits();
+        if (current.is('.'))
+            tokenizeDecimal(position);
+        else
+            token = new Token(INTEGER, lexeme.toString(), position);
+    }
+
+    private void tokenizeDecimal(Position position) {
         appendLexemeAndNext();
+        appendDigits();
+        if (current.isOneOf('e', 'E')) {
+            var missingIntegerPart = lexeme.indexOf(".") == 0;
+            if (missingIntegerPart) {
+                appendLexemeAndNext();
+                throw new FormulaException("Número decimal inválido \"%s\", posição: %s", lexeme, position);
+            }
+            appendLexemeAndNext();
+            if (current.isOneOf('+', '-'))
+                appendLexemeAndNext();
+            if (!current.isDigit())
+                throw new FormulaException("Número decimal inválido \"%s\", posição: %s", lexeme, position);
+            appendDigits();
+        }
+        token = new Token(DECIMAL, lexeme.toString(), position);
+    }
+
+    private void appendDigits() {
         while (current.isDigit())
             appendLexemeAndNext();
-        if (current.is('.')) {
-            appendLexemeAndNext();
-            while (current.isDigit())
-                appendLexemeAndNext();
-        }
-        token = new Token(NUMBER, lexeme.toString(), position);
     }
 
     private void tokenizeString() {
@@ -118,10 +145,10 @@ public class Tokenizer {
 
     private void tokenizeOperator() {
         var position = current.position();
-        operators.start(current.value());
+        operatorParser.start(current.value());
         appendLexemeAndNext();
-        while (operators.isOperatorPart(current.value())) {
-            operators.acceptPart(current.value());
+        while (operatorParser.isOperatorPart(current.value())) {
+            operatorParser.acceptPart(current.value());
             appendLexemeAndNext();
         }
         token = new Token(OPERATOR, lexeme.toString(), position);

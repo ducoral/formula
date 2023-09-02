@@ -1,6 +1,6 @@
-package com.github.ducoral.formula.scanner;
+package com.github.ducoral.formula;
 
-public record CharInfo(char value, Position position) {
+record CharInfo(char value, Position position) {
 
     public static final CharInfo EOF = new CharInfo('\0', Position.NULL);
 
@@ -35,7 +35,7 @@ public record CharInfo(char value, Position position) {
     }
 
     public boolean isSymbol() {
-        return isOneOf('(', ')', '[', ']', '.', ',', ';');
+        return isOneOf('(', ')', ',');
     }
 
     public boolean isOneOf(char... chars) {

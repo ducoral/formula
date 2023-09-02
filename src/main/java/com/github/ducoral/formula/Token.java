@@ -1,14 +1,14 @@
-package com.github.ducoral.formula.scanner;
+package com.github.ducoral.formula;
 
-public record Token(TokenType type, String lexeme, Position position) {
+record Token(TokenType type, String lexeme, Position position) {
 
-    public static final Token EOF = new Token(TokenType.EOF, "", Position.NULL);
+    static final Token EOF = new Token(TokenType.EOF, "", Position.NULL);
 
-    public static Token fromCharInfo(TokenType type, CharInfo charInfo) {
+    static Token fromCharInfo(TokenType type, CharInfo charInfo) {
         return new Token(type, charInfo.asString(), charInfo.position());
     }
 
-    public boolean isEOF() {
+    boolean isEOF() {
         return type == TokenType.EOF;
     }
 

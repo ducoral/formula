@@ -1,84 +1,84 @@
 package com.github.ducoral.formula;
 
-import com.github.ducoral.formula.parser.Expression;
-import com.github.ducoral.formula.parser.Parser;
-import com.github.ducoral.formula.scanner.CharReader;
-import com.github.ducoral.formula.scanner.Operators;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Formula {
 
-    public static void main(String[] args) {
-        var operatorInfo = Operators
-                .builder()
-                .operators("&&", "||")
-                .operators("=", "!=", ">", ">=", "<", "<=")
-                .operators("+", "-", "*", "/")
-                .operators("^")
-                .build();
-        var input = "2+3^2>1+2&&2+1<=4*3";
-        var charReader = new CharReader(input);
-        var expression = Parser.parse(charReader, operatorInfo);
+    final Map<String, Function<Parameters, Object>> functions;
 
-        var builder = new StringBuilder();
-        expression.accept(toString(builder));
+    final List<Operation> unaryOperations;
 
-        System.out.println(builder);
+    final List<Operation> binaryOperations;
+
+    final OperatorParser operatorParser;
+
+    final OperatorPrecedence operatorPrecedence;
+
+    public static Builder builder() {
+        return new Builder();
     }
 
-    static Expression.Visitor toString(StringBuilder builder) {
-        return new Expression.Visitor() {
-            @Override
-            public void visit(Expression.Literal literal) {
-                builder.append(literal.value());
-            }
+    Formula(Builder builder) {
+        functions = builder.functions;
+        unaryOperations = builder.unaryOperations;
+        binaryOperations = builder.binaryOperations;
 
-            @Override
-            public void visit(Expression.Identifier identifier) {
-                builder.append(identifier.name());
-            }
+        var operators = new HashSet<String>();
+        unaryOperations.forEach(operation -> operators.add(operation.operator().lexeme()));
+        binaryOperations.forEach(operation -> operators.add(operation.operator().lexeme()));
+        operatorParser = new OperatorParser(operators);
 
-            @Override
-            public void visit(Expression.UnaryOperation unaryOperation) {
-                builder
-                        .append('[')
-                        .append(unaryOperation.operator())
-                        .append(' ');
-                unaryOperation.right().accept(this);
-                builder.append(']');
-            }
+        operatorPrecedence = new OperatorPrecedence(binaryOperations);
+    }
 
-            @Override
-            public void visit(Expression.BinaryOperation binaryOperation) {
-                builder.append('[');
-                binaryOperation.left().accept(this);
-                builder
-                        .append(' ')
-                        .append(binaryOperation.operator())
-                        .append(' ');
-                binaryOperation.right().accept(this);
-                builder.append(']');
-            }
+    public Expression parse(String input) {
+        var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
+        return new ExpressionParser(tokenizer, operatorPrecedence)
+                .parse();
+    }
 
-            @Override
-            public void visit(Expression.Function function) {
-                var comma = new Object() {
-                    int count = 0;
+    public Object evaluate(String input, Map<String, Object> scope) {
+        var expression = parse(input);
+        var evaluator = new Evaluator(this, scope);
+        return evaluator.evaluate(expression);
+    }
 
-                    @Override
-                    public String toString() {
-                        return count++ == 0 ? "" : ", ";
-                    }
-                };
+    public static class Builder {
 
-                builder
-                        .append(function.name())
-                        .append('(');
-                for (var parameter : function.parameters()) {
-                    builder.append(comma);
-                    parameter.accept(this);
-                }
-                builder.append(')');
-            }
-        };
+        final Map<String, Function<Parameters, Object>> functions = new HashMap<>();
+
+        final List<Operation> unaryOperations = new ArrayList<>();
+
+        final List<Operation> binaryOperations = new ArrayList<>();
+
+
+        public Builder unaryOperation(Operation operation) {
+            unaryOperations.add(operation);
+            return this;
+        }
+
+        public Builder binaryOperation(Operation operation) {
+            binaryOperations.add(operation);
+            return this;
+        }
+
+        public Builder function(FunctionDefinition function) {
+            functions.put(function.name(), function.function());
+            return this;
+        }
+
+        public Builder configure(Consumer<Builder> consumer) {
+            consumer.accept(this);
+            return this;
+        }
+
+        public Formula build() {
+            return new Formula(this);
+        }
+
+        Builder() {
+        }
     }
 }

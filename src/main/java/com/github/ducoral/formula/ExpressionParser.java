@@ -1,28 +1,28 @@
-package com.github.ducoral.formula.parser;
-
-import com.github.ducoral.formula.FormulaException;
-import com.github.ducoral.formula.scanner.*;
+package com.github.ducoral.formula;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-import static com.github.ducoral.formula.parser.Expression.*;
-import static com.github.ducoral.formula.scanner.TokenType.*;
+import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.TokenType.*;
 
-public class Parser {
+class ExpressionParser {
 
     private final Tokenizer tokenizer;
 
-    private final Operators operators;
+    private final OperatorPrecedence operatorPrecedence;
 
-    public static Expression parse(CharReader charReader, Operators operators) {
-        return new Parser(charReader, operators)
-                .parseExpression();
+    ExpressionParser(Tokenizer tokenizer, OperatorPrecedence operatorPrecedence) {
+        this.tokenizer = tokenizer;
+        this.operatorPrecedence = operatorPrecedence;
     }
 
-    private Parser(CharReader charReader, Operators operators) {
-        this.tokenizer = new Tokenizer(charReader, operators);
-        this.operators = operators;
+    Expression parse() {
+        var expression = parseExpression();
+        accept(EOF, OPERATOR);
+        return expression;
     }
 
     private Expression parseExpression() {
@@ -44,7 +44,7 @@ public class Parser {
     }
 
     private Expression parseBinaryOperation(int precedence) {
-        if (!operators.hasOperatorsWithPrecedence(precedence))
+        if (!operatorPrecedence.hasOperatorsWithPrecedence(precedence))
             return parseTerm();
 
         var operation = parseBinaryOperation(precedence + 1);
@@ -61,12 +61,12 @@ public class Parser {
             return parseScope();
         else if (tokenizer.isType(IDENTIFIER))
             return parseIdentifierOrFunction();
-        else if (tokenizer.isType(NUMBER)) {
-            var value = new BigDecimal(accept(NUMBER).lexeme());
-            return new Literal(value);
-        } else if (tokenizer.isType(STRING)) {
-            var value = accept(STRING).lexeme();
-            return new Literal(value);
+        else if (tokenizer.isType(INTEGER))
+            return new Literal(new BigInteger(accept(INTEGER).lexeme()));
+        else if (tokenizer.isType(DECIMAL))
+            return new Literal(new BigDecimal(accept(DECIMAL).lexeme()));
+        else if (tokenizer.isType(STRING)) {
+            return new Literal(accept(STRING).lexeme());
         } else if (tokenizer.isType(OPERATOR)) {
             return parseUnaryOperation();
         } else
@@ -91,16 +91,16 @@ public class Parser {
             }
         }
         accept(")");
-        return new Function(identifier.lexeme(), parameters);
+        return new FunctionCall(identifier.lexeme(), parameters);
     }
 
-    private Token accept(TokenType type) {
-        if (tokenizer.isType(type)) {
+    private Token accept(TokenType... types) {
+        if (tokenizer.isType(types)) {
             var token = tokenizer.token();
             tokenizer.tokenize();
             return token;
         } else
-            throw new FormulaException("Token inválido: %s. Era esperado %s no lugar", type, tokenizer.token().type());
+            throw new FormulaException("Token inválido: %s. Era esperado %s no lugar", tokenizer.token().type(), Arrays.toString(types));
     }
 
     private void accept(String lexeme) {

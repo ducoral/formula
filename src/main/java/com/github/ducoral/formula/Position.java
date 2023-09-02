@@ -1,4 +1,4 @@
-package com.github.ducoral.formula.scanner;
+package com.github.ducoral.formula;
 
 public record Position(int index, int line, int column) {
 
