@@ -48,11 +48,10 @@ class ExpressionParser {
             return parseTerm();
 
         var operation = parseBinaryOperation(precedence + 1);
-        while (tokenizer.isOperatorOfPrecedence(precedence))
-            operation = new BinaryOperation(
-                    operation,
-                    accept(OPERATOR).lexeme(),
-                    parseBinaryOperation(precedence + 1));
+        while (tokenizer.isOperatorOfPrecedence(precedence)) {
+            var operator = accept(OPERATOR).lexeme();
+            operation = new BinaryOperation(operation, operator, parseBinaryOperation(precedence + 1));
+        }
         return operation;
     }
 

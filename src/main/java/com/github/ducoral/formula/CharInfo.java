@@ -25,7 +25,7 @@ record CharInfo(char value, Position position) {
     }
 
     public boolean isIdentifierPart() {
-        return Character.isJavaIdentifierPart(value);
+        return value != '\0' && Character.isJavaIdentifierPart(value);
     }
 
     public boolean isStringDelimiter() {

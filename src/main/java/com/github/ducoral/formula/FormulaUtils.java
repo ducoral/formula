@@ -33,4 +33,16 @@ public class FormulaUtils {
 
         throw new FormulaException("Object " + value + " isn' a number");
     }
+
+    public static Class<?> getTypeOf(Object object) {
+        return object == null
+                ? null
+                : object.getClass();
+    }
+
+    public static String getTypeNameOf(Object object) {
+        return object == null
+                ? null
+                : object.getClass().getName();
+    }
 }

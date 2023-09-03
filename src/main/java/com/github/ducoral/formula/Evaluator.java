@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.FormulaUtils.*;
 
 class Evaluator implements Visitor {
 
@@ -36,17 +37,17 @@ class Evaluator implements Visitor {
     @Override
     public void visit(UnaryOperation unaryOperation) {
        unaryOperation.right().accept(this);
-       var operationResolver =
-               new OperationResolver(formula.unaryOperations, getResultType(), unaryOperation.operator());
-       result = operationResolver.chain(unaryOperand(result));
+        var operationResolver =
+               new OperationResolver(formula.unaryOperations, getTypeOf(result), unaryOperation.operator());
+       result = operationResolver.chain(unaryOperand(unaryOperation.operator(), result));
     }
 
     @Override
     public void visit(BinaryOperation binaryOperation) {
         binaryOperation.left().accept(this);
         var operationResolver =
-                new OperationResolver(formula.binaryOperations, getResultType(), binaryOperation.operator());
-        var operands = binaryOperands(result, () -> {
+                new OperationResolver(formula.binaryOperations, getTypeOf(result), binaryOperation.operator());
+        var operands = binaryOperands(result, binaryOperation.operator(), () -> {
            binaryOperation.right().accept(this);
            return result;
         });
@@ -65,13 +66,7 @@ class Evaluator implements Visitor {
         result = call.apply(parameters);
     }
 
-    private Class<?> getResultType() {
-        return result == null
-                ? null
-                : result.getClass();
-    }
-
-    private static Operands unaryOperand(Object value) {
+    private static Operands unaryOperand(String operator, Object value) {
         return new Operands() {
             @Override
             public Object left() {
@@ -82,10 +77,15 @@ class Evaluator implements Visitor {
             public Object right() {
                 return value;
             }
+
+            @Override
+            public String toString() {
+                return "`" + operator + " " + getTypeNameOf(right()) + "`";
+            }
         };
     }
 
-    private static Operands binaryOperands(Object left, Supplier<Object> rightSupplier) {
+    private static Operands binaryOperands(Object left, String operator, Supplier<Object> rightSupplier) {
         return new Operands() {
             @Override
             public Object left() {
@@ -95,6 +95,11 @@ class Evaluator implements Visitor {
             @Override
             public Object right() {
                 return rightSupplier.get();
+            }
+
+            @Override
+            public String toString() {
+                return "`" + getTypeNameOf(left()) + " " + operator + " " + getTypeNameOf(right()) + "`";
             }
         };
     }
