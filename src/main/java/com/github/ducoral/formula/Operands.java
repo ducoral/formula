@@ -1,8 +1,91 @@
 package com.github.ducoral.formula;
 
-public interface Operands {
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-    Object left();
+import static com.github.ducoral.formula.Utils.*;
 
-    Object right();
+public class Operands {
+
+    private final Supplier<Object> left;
+
+    private final Supplier<Object> right;
+
+    private final Function<Operands, String> toString;
+
+    Operands(Supplier<Object> left, Supplier<Object> right, Function<Operands, String> toString) {
+        this.left = left;
+        this.right = right;
+        this.toString = toString;
+    }
+
+    public Object getLeft() {
+        return left.get();
+    }
+
+    public String getLeftAsString() {
+        return String.valueOf(getLeft());
+    }
+
+    public BigInteger getLeftAsBigInteger() {
+        return asBigInteger(getLeft());
+    }
+
+    public BigDecimal getLeftAsBigDecimal() {
+        return asBigDecimal(getLeft());
+    }
+
+    public boolean isLeftTruthful() {
+        return isTruthful(getLeft());
+    }
+
+    public boolean isLeftNumber() {
+        return isNumber(getLeft());
+    }
+
+    public boolean isLeftInteger() {
+        return isInteger(getLeft());
+    }
+
+    public String getLeftType() {
+        return getTypeNameOf(getLeft());
+    }
+
+    public Object getRight() {
+        return right.get();
+    }
+
+    public String getRightAsString() {
+        return String.valueOf(getRight());
+    }
+
+    public BigInteger getRightAsBigInteger() {
+        return asBigInteger(getRight());
+    }
+
+    public BigDecimal getRightAsBigDecimal() {
+        return asBigDecimal(getRight());
+    }
+
+    public boolean isRightTruthful() {
+        return isTruthful(getRight());
+    }
+
+    public boolean isRightNumber() {
+        return isNumber(getRight());
+    }
+
+    public boolean isRightInteger() {
+        return isInteger(getRight());
+    }
+    public String getRightType() {
+        return getTypeNameOf(getRight());
+    }
+
+    @Override
+    public String toString() {
+        return toString.apply(this);
+    }
 }

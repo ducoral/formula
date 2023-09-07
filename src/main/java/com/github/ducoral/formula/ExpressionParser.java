@@ -61,11 +61,11 @@ class ExpressionParser {
         else if (tokenizer.isType(IDENTIFIER))
             return parseIdentifierOrFunction();
         else if (tokenizer.isType(INTEGER))
-            return new Literal(new BigInteger(accept(INTEGER).lexeme()));
+            return new NumberLiteral(new BigInteger(accept(INTEGER).lexeme()));
         else if (tokenizer.isType(DECIMAL))
-            return new Literal(new BigDecimal(accept(DECIMAL).lexeme()));
+            return new NumberLiteral(new BigDecimal(accept(DECIMAL).lexeme()));
         else if (tokenizer.isType(STRING)) {
-            return new Literal(accept(STRING).lexeme());
+            return new StringLiteral(accept(STRING).lexeme());
         } else if (tokenizer.isType(OPERATOR)) {
             return parseUnaryOperation();
         } else

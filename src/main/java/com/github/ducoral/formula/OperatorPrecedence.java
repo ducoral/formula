@@ -7,19 +7,17 @@ class OperatorPrecedence {
     private final List<Set<String>> operators = new ArrayList<>();
 
     OperatorPrecedence(List<Operation> operations) {
-        var operatorsMap = new HashMap<Integer, Set<String>>();
+        var operatorsMap = new HashMap<Precedence, Set<String>>();
 
-        for (var operation : operations) {
-            var precedence = operation.operator().precedence();
-            if (!operatorsMap.containsKey(precedence))
-                operatorsMap.put(precedence, new HashSet<>());
-            operatorsMap.get(precedence).add(operation.operator().lexeme());
-        }
+        operations
+                .forEach(operation -> operatorsMap
+                        .computeIfAbsent(operation.operator().precedence(), precedence -> new HashSet<>())
+                        .add(operation.operator().lexeme()));
 
         operatorsMap
                 .keySet()
                 .stream()
-                .sorted((a, b) -> a.compareTo(b) * -1)
+                .sorted(Precedence::compareTo)
                 .forEach(precedence -> operators.add(operatorsMap.get(precedence)));
     }
 
@@ -27,7 +25,7 @@ class OperatorPrecedence {
         return precedence >= 0 && precedence < operators.size();
     }
 
-    Set<String> operatorOfPrecedence(int precedence) {
+    Set<String> getOperatorsOfPrecedence(int precedence) {
         return hasOperatorsWithPrecedence(precedence)
                 ? operators.get(precedence)
                 : Set.of();

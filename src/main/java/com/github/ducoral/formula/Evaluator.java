@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.github.ducoral.formula.Expression.*;
-import static com.github.ducoral.formula.FormulaUtils.*;
+import static com.github.ducoral.formula.Utils.*;
 
 class Evaluator implements Visitor {
 
@@ -25,8 +25,13 @@ class Evaluator implements Visitor {
     }
 
     @Override
-    public void visit(Literal literal) {
-        result = literal.value();
+    public void visit(NumberLiteral number) {
+        result = number.value();
+    }
+
+    @Override
+    public void visit(StringLiteral string) {
+        result = string.value();
     }
 
     @Override
@@ -39,7 +44,7 @@ class Evaluator implements Visitor {
        unaryOperation.right().accept(this);
         var operationResolver =
                new OperationResolver(formula.unaryOperations, getTypeOf(result), unaryOperation.operator());
-       result = operationResolver.chain(unaryOperand(unaryOperation.operator(), result));
+       result = operationResolver.chain(operandsOfUnary(unaryOperation.operator(), result));
     }
 
     @Override
@@ -47,7 +52,7 @@ class Evaluator implements Visitor {
         binaryOperation.left().accept(this);
         var operationResolver =
                 new OperationResolver(formula.binaryOperations, getTypeOf(result), binaryOperation.operator());
-        var operands = binaryOperands(result, binaryOperation.operator(), () -> {
+        var operands = operandsOfBinary(result, binaryOperation.operator(), () -> {
            binaryOperation.right().accept(this);
            return result;
         });
@@ -66,41 +71,17 @@ class Evaluator implements Visitor {
         result = call.apply(parameters);
     }
 
-    private static Operands unaryOperand(String operator, Object value) {
-        return new Operands() {
-            @Override
-            public Object left() {
-                return null;
-            }
-
-            @Override
-            public Object right() {
-                return value;
-            }
-
-            @Override
-            public String toString() {
-                return "`" + operator + " " + getTypeNameOf(right()) + "`";
-            }
-        };
+    private static Operands operandsOfUnary(String operator, Object value) {
+        return new Operands(
+                () -> null,
+                () -> value,
+                operands -> String.format("`%s %s`", operator, operands.getRightType()));
     }
 
-    private static Operands binaryOperands(Object left, String operator, Supplier<Object> rightSupplier) {
-        return new Operands() {
-            @Override
-            public Object left() {
-                return left;
-            }
-
-            @Override
-            public Object right() {
-                return rightSupplier.get();
-            }
-
-            @Override
-            public String toString() {
-                return "`" + getTypeNameOf(left()) + " " + operator + " " + getTypeNameOf(right()) + "`";
-            }
-        };
+    private static Operands operandsOfBinary(Object left, String operator, Supplier<Object> rightSupplier) {
+        return new Operands(
+                () -> left,
+                rightSupplier,
+                operands -> String.format("`%s %s %s`", operands.getLeftType(), operator, operands.getRightType()));
     }
 }

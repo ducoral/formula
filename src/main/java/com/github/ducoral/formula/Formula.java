@@ -45,6 +45,10 @@ public class Formula {
         return evaluator.evaluate(expression);
     }
 
+    public String explains(String input) {
+        return ExpressionExplainsVisitor.explain(parse(input));
+    }
+
     public static class Builder {
 
         final Map<String, Function<Parameters, Object>> functions = new HashMap<>();

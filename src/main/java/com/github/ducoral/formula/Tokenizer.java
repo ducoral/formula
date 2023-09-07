@@ -42,7 +42,7 @@ class Tokenizer {
 
     boolean isOperatorOfPrecedence(int precedence) {
         return operatorPrecedence
-                .operatorOfPrecedence(precedence)
+                .getOperatorsOfPrecedence(precedence)
                 .contains(token.lexeme());
     }
 
@@ -70,7 +70,7 @@ class Tokenizer {
         else if (operatorParser.isOperatorStart(current.value()))
             tokenizeOperator();
         else if (current.isSymbol()) {
-            token = Token.fromCharInfo(SYMBOL, current);
+            token = new Token(SYMBOL, current.asString(), current.position());
             next();
         }
         else

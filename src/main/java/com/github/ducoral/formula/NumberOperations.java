@@ -7,29 +7,28 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.github.ducoral.formula.Formula.*;
-import static com.github.ducoral.formula.Operations.*;
-import static com.github.ducoral.formula.FormulaUtils.*;
+import static com.github.ducoral.formula.Formula.Builder;
+import static com.github.ducoral.formula.FormulaDefaults.*;
 
 class NumberOperations implements Consumer<Builder> {
 
     @Override
     public void accept(Builder builder) {
         builder
-                .unaryOperation(numberOperation(MINUS, operateUnary(BigInteger::negate, BigDecimal::negate)))
-                .binaryOperation(numberOperation(PLUS, operateBinary(BigInteger::add, BigDecimal::add)))
-                .binaryOperation(numberOperation(MINUS, operateBinary(BigInteger::subtract, BigDecimal::subtract)))
-                .binaryOperation(numberOperation(ASTERISK, operateBinary(BigInteger::multiply, BigDecimal::multiply)))
-                .binaryOperation(numberOperation(SLASH, operateBinary(BigInteger::divide, BigDecimal::divide)))
-                .binaryOperation(numberOperation(EQUAL, operateCompareTo(result -> result == 0)))
-                .binaryOperation(numberOperation(NOT_EQUAL, operateCompareTo(result -> result != 0)))
-                .binaryOperation(numberOperation(GREATER_THAN, operateCompareTo(result -> result > 0)))
-                .binaryOperation(numberOperation(GREATER_THAN_OR_EQUAL, operateCompareTo(result -> result > 0 || result == 0)))
-                .binaryOperation(numberOperation(LESS_THAN, operateCompareTo(result -> result < 0)))
-                .binaryOperation(numberOperation(LESS_THAN_OR_EQUAL, operateCompareTo(result -> result < 0 || result == 0)));
+                .unaryOperation(operation(MINUS, operateUnary(BigInteger::negate, BigDecimal::negate)))
+                .binaryOperation(operation(PLUS, operateBinary(BigInteger::add, BigDecimal::add)))
+                .binaryOperation(operation(MINUS, operateBinary(BigInteger::subtract, BigDecimal::subtract)))
+                .binaryOperation(operation(ASTERISK, operateBinary(BigInteger::multiply, BigDecimal::multiply)))
+                .binaryOperation(operation(SLASH, operateBinary(BigInteger::divide, BigDecimal::divide)))
+                .binaryOperation(operation(EQUAL, operateCompareTo(result -> result == 0)))
+                .binaryOperation(operation(NOT_EQUAL, operateCompareTo(result -> result != 0)))
+                .binaryOperation(operation(GREATER_THAN, operateCompareTo(result -> result > 0)))
+                .binaryOperation(operation(GREATER_THAN_OR_EQUAL, operateCompareTo(result -> result > 0 || result == 0)))
+                .binaryOperation(operation(LESS_THAN, operateCompareTo(result -> result < 0)))
+                .binaryOperation(operation(LESS_THAN_OR_EQUAL, operateCompareTo(result -> result < 0 || result == 0)));
     }
 
-    private static Operation numberOperation(Operator operator, OperationAction action) {
+    private static Operation operation(Operator operator, OperationAction action) {
         return new Operation(Number.class, operator, action);
     }
 
@@ -38,13 +37,12 @@ class NumberOperations implements Consumer<Builder> {
             Function<BigDecimal, Object> decimalAction) {
 
         return (operands, chainer) -> {
-            var right = operands.right();
-            if (!isNumber(right))
+            if (!operands.isRightNumber())
                 return chainer.chain(operands);
 
-            return isInteger(right)
-                    ? integerAction.apply(asBigInteger(right))
-                    : decimalAction.apply(asBigDecimal(right));
+            return operands.isRightInteger()
+                    ? integerAction.apply(operands.getRightAsBigInteger())
+                    : decimalAction.apply(operands.getRightAsBigDecimal());
         };
     }
 
@@ -53,25 +51,23 @@ class NumberOperations implements Consumer<Builder> {
             BiFunction<BigDecimal, BigDecimal, Object> decimalAction) {
 
         return (operands, chainer) -> {
-            var right = operands.right();
-            if (!isNumber(right))
+            if (!operands.isRightNumber())
                 return chainer.chain(operands);
 
-            var left = operands.left();
-            return isInteger(left) && isInteger(right)
-                    ? integerAction.apply(asBigInteger(left), asBigInteger(right))
-                    : decimalAction.apply(asBigDecimal(left), asBigDecimal(right));
+            return operands.isLeftInteger() && operands.isRightInteger()
+                    ? integerAction.apply(operands.getLeftAsBigInteger(), operands.getRightAsBigInteger())
+                    : decimalAction.apply(operands.getLeftAsBigDecimal(), operands.getRightAsBigDecimal());
         };
     }
 
     private static OperationAction operateCompareTo(Predicate<Integer> predicate) {
 
         return (operands, chainer) -> {
-            if (!isNumber(operands.right()))
+            if (!operands.isRightNumber())
                 return chainer.chain(operands);
 
-            var left = asBigDecimal(operands.left());
-            var right = asBigDecimal(operands.right());
+            var left = operands.getLeftAsBigDecimal();
+            var right = operands.getRightAsBigDecimal();
             return predicate.test(left.compareTo(right));
         };
     }

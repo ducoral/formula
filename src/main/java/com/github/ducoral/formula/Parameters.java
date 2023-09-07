@@ -1,5 +1,7 @@
 package com.github.ducoral.formula;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.function.Function;
 
 public class Parameters {
@@ -17,7 +19,31 @@ public class Parameters {
         return count;
     }
 
-    public Object getValue(int index) {
+    public boolean isNumber(int index) {
+        return Utils.isNumber(get(index));
+    }
+
+    public boolean isInteger(int index) {
+        return Utils.isInteger(get(index));
+    }
+
+    public boolean isString(int index) {
+        return Utils.isString(get(index));
+    }
+
+    public boolean isTruthful(int index) {
+        return Utils.isTruthful(get(index));
+    }
+
+    public BigInteger getAsBigInteger(int index) {
+        return Utils.asBigInteger(get(index));
+    }
+
+    public BigDecimal getAsBigDecimal(int index) {
+        return Utils.asBigDecimal(get(index));
+    }
+
+    public Object get(int index) {
         if (index < 0 || index >= count)
             throw new FormulaException("Índice de parâmetro inválido: " + index);
         return valueFunction.apply(index);
