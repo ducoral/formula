@@ -1,5 +1,7 @@
 package com.github.ducoral.formula;
 
+import java.awt.*;
+
 import static com.github.ducoral.formula.FormulaDefaults.*;
 
 public class Tests {
@@ -14,11 +16,12 @@ public class Tests {
                         params -> params.getAsBigInteger(0).add(params.getAsBigInteger(1))))
                 .build();
 
-        String input = "teste(a * 3) * 3 + oloco_fi('teste' + outro, 4 + 4 * 5 >= 5 + 7)";
-        Expression expression = formula.parse(input);
-        System.out.println(expression);
+//        String input = "- - - (1 - 3)";
+//        System.out.println(formula.explain(input));
 
-        System.out.println(formula.explain(input));
+        formula.explorer();
+
+
 
     }
 }

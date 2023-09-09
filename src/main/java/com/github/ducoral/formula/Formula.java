@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.github.ducoral.formula.Utils.*;
+
 public class Formula {
 
     final Map<String, Function<Parameters, Object>> functions;
@@ -46,7 +48,30 @@ public class Formula {
     }
 
     public String explain(String input) {
-        return ExpressionAsTextTreeVisitor.explain(parse(input));
+        var expression = parse(input);
+        var asStr = ExpressionAsStringVisitor.asString(expression);
+        var asTextTree = ExpressionAsTextTreeVisitor.asTextTree(expression).split("\\n");
+        int linesWidth = String.valueOf(asTextTree.length).length();
+        var builder = new StringBuilder();
+        builder
+                .append(fillSpaces(linesWidth))
+                .append("| ")
+                .append(asStr)
+                .append('\n')
+                .append(fill('-', linesWidth))
+                .append('+')
+                .append(fill('-', asStr.length() + 1));
+        for (int line = 0; line < asTextTree.length; line++)
+            builder
+                    .append('\n')
+                    .append(rightAlign(String.valueOf(line), linesWidth))
+                    .append("| ")
+                    .append(asTextTree[line]);
+        return builder.toString();
+    }
+
+    public void explorer() {
+        ExpressionExplorer.show(this);
     }
 
     public static class Builder {

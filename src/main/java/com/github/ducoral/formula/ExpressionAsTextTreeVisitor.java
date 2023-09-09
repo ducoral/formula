@@ -3,12 +3,13 @@ package com.github.ducoral.formula;
 import java.util.function.Predicate;
 
 import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.Utils.*;
 
 class ExpressionAsTextTreeVisitor implements Visitor {
 
     private String result;
 
-    static String explain(Expression expression) {
+    static String asTextTree(Expression expression) {
         var visitor = new ExpressionAsTextTreeVisitor();
         expression.accept(visitor);
         return visitor.result;
@@ -66,7 +67,7 @@ class ExpressionAsTextTreeVisitor implements Visitor {
     @Override
     public void visit(FunctionCall function) {
         var content = splitLines(function.name() + "(");
-        var comma = Utils.comma();
+        var comma = comma();
         for (var parameter : function.parameters()) {
             parameter.accept(this);
             content = concatenate(content, splitLines(comma.toString()), 0);
@@ -210,20 +211,5 @@ class ExpressionAsTextTreeVisitor implements Visitor {
         return newStrs;
     }
 
-    private static String centralize(String str, int length) {
-        int diff = length - str.length();
-        if (diff < 1)
-            return str;
-        var result = new StringBuilder(fillSpaces(diff));
-        result.insert(diff / 2, str);
-        return result.toString();
-    }
 
-    private static String fillSpaces(int length) {
-        return new String(new char[length]).replace('\0', ' ');
-    }
-
-    private static String[] splitLines(String str) {
-        return str.split("\\n");
-    }
 }
