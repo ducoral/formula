@@ -14,11 +14,11 @@ public class Tests {
                         params -> params.getAsBigInteger(0).add(params.getAsBigInteger(1))))
                 .build();
 
-        String input = "teste * 5 + 1 * 4 + 5 * 2 + opa";
-        System.out.println(formula.parse(input));
+        String input = "teste(a * 3) * 3 + oloco_fi('teste' + outro, 4 + 4 * 5 >= 5 + 7)";
+        Expression expression = formula.parse(input);
+        System.out.println(expression);
 
-        var tree = ExpressionAsTextBinaryTree.asTextBinaryTree(formula.parse(input));
+        System.out.println(formula.explain(input));
 
-        System.out.println(tree);
     }
 }

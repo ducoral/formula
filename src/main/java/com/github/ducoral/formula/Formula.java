@@ -45,8 +45,8 @@ public class Formula {
         return evaluator.evaluate(expression);
     }
 
-    public String explains(String input) {
-        return ExpressionExplainsVisitor.explain(parse(input));
+    public String explain(String input) {
+        return ExpressionAsTextTreeVisitor.explain(parse(input));
     }
 
     public static class Builder {
