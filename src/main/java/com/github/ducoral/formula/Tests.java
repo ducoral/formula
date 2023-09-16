@@ -9,9 +9,7 @@ public class Tests {
     public static void main(String[] args) {
 
         var formula = Formula.builder()
-                .configure(NUMBER_OPERATIONS)
-                .configure(STRING_OPERATIONS)
-                .configure(LOGICAL_OPERATIONS)
+                .configure(DEFAULT_OPERATIONS)
                 .function(new FunctionDefinition("soma",
                         params -> params.getAsBigInteger(0).add(params.getAsBigInteger(1))))
                 .build();
@@ -21,6 +19,10 @@ public class Tests {
 
         formula.explorer();
 
+
+//        var prop = System.getProperties();
+//        for (var key : prop.keySet())
+//            System.out.println(key + ":" + prop.get(key));
 
 
     }

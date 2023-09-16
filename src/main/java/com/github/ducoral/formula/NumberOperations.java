@@ -2,6 +2,7 @@ package com.github.ducoral.formula;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,7 +20,7 @@ class NumberOperations implements Consumer<Builder> {
                 .binaryOperation(operation(PLUS, operateBinary(BigInteger::add, BigDecimal::add)))
                 .binaryOperation(operation(MINUS, operateBinary(BigInteger::subtract, BigDecimal::subtract)))
                 .binaryOperation(operation(ASTERISK, operateBinary(BigInteger::multiply, BigDecimal::multiply)))
-                .binaryOperation(operation(SLASH, operateBinary(BigInteger::divide, BigDecimal::divide)))
+                .binaryOperation(operation(SLASH, operateBinary(BigInteger::divide, (left, right) -> left.divide(right, RoundingMode.HALF_UP))))
                 .binaryOperation(operation(EQUAL, operateCompareTo(result -> result == 0)))
                 .binaryOperation(operation(NOT_EQUAL, operateCompareTo(result -> result != 0)))
                 .binaryOperation(operation(GREATER_THAN, operateCompareTo(result -> result > 0)))

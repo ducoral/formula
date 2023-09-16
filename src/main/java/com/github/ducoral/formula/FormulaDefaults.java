@@ -17,7 +17,7 @@ public class FormulaDefaults {
     public static final Operator PLUS = new Operator("+", ARITHMETIC_2);
     public static final Operator MINUS = new Operator("-", ARITHMETIC_2);
 
-    public static final Operator EQUAL = new Operator("=", RELATIONAL);
+    public static final Operator EQUAL = new Operator("==", RELATIONAL);
     public static final Operator NOT_EQUAL = new Operator("!=", RELATIONAL);
     public static final Operator GREATER_THAN = new Operator(">", RELATIONAL);
     public static final Operator GREATER_THAN_OR_EQUAL = new Operator(">=", RELATIONAL);
@@ -30,4 +30,7 @@ public class FormulaDefaults {
     public static final Consumer<Builder> NUMBER_OPERATIONS = new NumberOperations();
     public static final Consumer<Builder> STRING_OPERATIONS = new StringOperations();
     public static final Consumer<Builder> LOGICAL_OPERATIONS = new LogicalOperations();
+    public static final Consumer<Builder> DEFAULT_OPERATIONS = NUMBER_OPERATIONS
+            .andThen(STRING_OPERATIONS)
+            .andThen(LOGICAL_OPERATIONS);
 }
