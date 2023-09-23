@@ -21,9 +21,11 @@ public interface Expression {
         void visit(FunctionCall function);
     }
 
+    Position position();
+
     void accept(Visitor visitor);
 
-    class Empty implements Expression {
+    record Empty(Position position) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -35,7 +37,7 @@ public interface Expression {
         }
     }
 
-    record NumberLiteral(Object value) implements Expression {
+    record NumberLiteral(Position position, Object value) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -48,7 +50,7 @@ public interface Expression {
         }
     }
 
-    record StringLiteral(String value) implements Expression {
+    record StringLiteral(Position position, String value) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -61,7 +63,7 @@ public interface Expression {
         }
     }
 
-    record Identifier(String name) implements Expression {
+    record Identifier(Position position, String name) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -74,7 +76,7 @@ public interface Expression {
         }
     }
 
-    record UnaryOperation(String operator, Expression right) implements Expression {
+    record UnaryOperation(Position position, String operator, Expression right) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -87,7 +89,7 @@ public interface Expression {
         }
     }
 
-    record BinaryOperation(Expression left, String operator, Expression right) implements Expression {
+    record BinaryOperation(Position position, Expression left, String operator, Expression right) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {
@@ -100,7 +102,7 @@ public interface Expression {
         }
     }
 
-    record FunctionCall(String name, List<Expression> parameters) implements Expression {
+    record FunctionCall(Position position, String name, List<Expression> parameters) implements Expression {
 
         @Override
         public void accept(Visitor visitor) {

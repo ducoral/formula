@@ -1,5 +1,8 @@
 package com.github.ducoral.formula;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.github.ducoral.formula.Expression.*;
@@ -101,12 +104,10 @@ class ExpressionAsTextTreeVisitor implements Visitor {
         Predicate<Integer> isSpaceOrUnderscore = idx -> str.charAt(idx) == ' ' || str.charAt(idx) == '_';
         while (index < str.length() && isSpaceOrUnderscore.test(index))
             index++;
-        int parentesis = 0;
-        while (index < str.length() && (parentesis > 0 || isSpaceOrUnderscore.negate().test(index))) {
-            if (str.charAt(index) == '(')
-                parentesis++;
-            else if (str.charAt(index) == ')')
-                parentesis--;
+        var delimiterFlag = new AtomicBoolean(false);
+        var delimiterChecker = getDelimiterChecker(delimiterFlag);
+        while (index < str.length() && (delimiterFlag.get() || isSpaceOrUnderscore.negate().test(index))) {
+            delimiterChecker.accept(str.charAt(index));
             index++;
         }
         var left = index;
@@ -118,6 +119,30 @@ class ExpressionAsTextTreeVisitor implements Visitor {
                 + fillSpaces(middle - 2)
                 + "\\"
                 + fillSpaces(str.length() - left - middle);
+    }
+
+    private static Consumer<Character> getDelimiterChecker(AtomicBoolean delimiterFlag) {
+        var parentesisCount = new AtomicInteger();
+        var doubleQuoteFlag = new AtomicBoolean(false);
+        var singleQuoteFlag = new AtomicBoolean(false);
+        var crasisFlag = new AtomicBoolean(false);
+        return character -> {
+            if (character == '(')
+                parentesisCount.incrementAndGet();
+            else if (character == ')')
+                parentesisCount.decrementAndGet();
+            else if (character == '"')
+                doubleQuoteFlag.set(!doubleQuoteFlag.get());
+            else if (character == '\'')
+                singleQuoteFlag.set(!singleQuoteFlag.get());
+            else if (character == '`')
+                crasisFlag.set(!crasisFlag.get());
+            delimiterFlag.set(
+                    parentesisCount.get() > 0
+                            || doubleQuoteFlag.get()
+                            || singleQuoteFlag.get()
+                            || crasisFlag.get());
+        };
     }
 
     private static String[] concatenate(String[] left, String[] right, int middleWidth) {

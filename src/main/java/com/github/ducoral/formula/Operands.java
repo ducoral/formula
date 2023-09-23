@@ -9,13 +9,16 @@ import static com.github.ducoral.formula.Utils.*;
 
 public class Operands {
 
+    private final Position position;
+
     private final Supplier<Object> left;
 
     private final Supplier<Object> right;
 
     private final Function<Operands, String> toString;
 
-    Operands(Supplier<Object> left, Supplier<Object> right, Function<Operands, String> toString) {
+    Operands(Position position, Supplier<Object> left, Supplier<Object> right, Function<Operands, String> toString) {
+        this.position = position;
         this.left = left;
         this.right = right;
         this.toString = toString;
@@ -82,6 +85,10 @@ public class Operands {
     }
     public String getRightType() {
         return getTypeNameOf(getRight());
+    }
+
+    public Position getPosition() {
+        return position;
     }
 
     @Override

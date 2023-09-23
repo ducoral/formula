@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.github.ducoral.formula.Expression.*;
-import static com.github.ducoral.formula.Utils.*;
+import static com.github.ducoral.formula.Utils.getTypeOf;
 
 class Evaluator implements Visitor {
 
@@ -44,7 +44,7 @@ class Evaluator implements Visitor {
        unaryOperation.right().accept(this);
         var operationResolver =
                new OperationResolver(formula.unaryOperations, getTypeOf(result), unaryOperation.operator());
-       result = operationResolver.chain(operandsOfUnary(unaryOperation.operator(), result));
+       result = operationResolver.chain(operandsOfUnary(unaryOperation, result));
     }
 
     @Override
@@ -52,7 +52,7 @@ class Evaluator implements Visitor {
         binaryOperation.left().accept(this);
         var operationResolver =
                 new OperationResolver(formula.binaryOperations, getTypeOf(result), binaryOperation.operator());
-        var operands = operandsOfBinary(result, binaryOperation.operator(), () -> {
+        var operands = operandsOfBinary(binaryOperation.position(), result, binaryOperation.operator(), () -> {
            binaryOperation.right().accept(this);
            return result;
         });
@@ -62,7 +62,7 @@ class Evaluator implements Visitor {
     @Override
     public void visit(FunctionCall function) {
         if (!formula.functions.containsKey(function.name()))
-            throw new FormulaException("Função não definida: " + function.name());
+            throw new FormulaException(FormulaExceptionType.FUNCTION_NOT_DEFINED, function.position(), function);
         var call = formula.functions.get(function.name());
         var parameters = new Parameters(function.parameters().size(), index -> {
             function.parameters().get(index).accept(this);
@@ -71,17 +71,19 @@ class Evaluator implements Visitor {
         result = call.apply(parameters);
     }
 
-    private static Operands operandsOfUnary(String operator, Object value) {
+    private static Operands operandsOfUnary(UnaryOperation operation, Object value) {
         return new Operands(
+                operation.position(),
                 () -> null,
                 () -> value,
-                operands -> String.format("`%s %s`", operator, operands.getRightType()));
+                operands -> String.format("%s %s", operation.operator(), operands.getRightType()));
     }
 
-    private static Operands operandsOfBinary(Object left, String operator, Supplier<Object> rightSupplier) {
+    private static Operands operandsOfBinary(Position position, Object left, String operator, Supplier<Object> rightSupplier) {
         return new Operands(
+                position,
                 () -> left,
                 rightSupplier,
-                operands -> String.format("`%s %s %s`", operands.getLeftType(), operator, operands.getRightType()));
+                operands -> String.format("%s %s %s", operands.getLeftType(), operator, operands.getRightType()));
     }
 }

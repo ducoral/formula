@@ -2,10 +2,8 @@ package com.github.ducoral.formula;
 
 record CharInfo(char value, Position position) {
 
-    static final CharInfo EOF = new CharInfo('\0', Position.NULL);
-
     boolean isEOF() {
-        return this.equals(EOF);
+        return value == '\0';
     }
 
     boolean is(char value) {

@@ -2,8 +2,6 @@ package com.github.ducoral.formula;
 
 record Token(TokenType type, String lexeme, Position position) {
 
-    static final Token EOF = new Token(TokenType.EOF, "", Position.NULL);
-
     boolean isEOF() {
         return type == TokenType.EOF;
     }

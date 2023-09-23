@@ -1,6 +1,8 @@
 package com.github.ducoral.formula;
 
+import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -64,7 +66,7 @@ public class Formula {
         for (int line = 0; line < asTextTree.length; line++)
             builder
                     .append('\n')
-                    .append(rightAlign(String.valueOf(line), linesWidth))
+                    .append(rightAlign(String.valueOf(line + 1), linesWidth))
                     .append("| ")
                     .append(asTextTree[line]);
         return builder.toString();
@@ -82,6 +84,13 @@ public class Formula {
 
         final List<Operation> binaryOperations = new ArrayList<>();
 
+        final AtomicReference<RoundingMode> roundingModeReference = new AtomicReference<>(RoundingMode.HALF_UP);
+
+
+        public Builder roudingMode(RoundingMode roundingMode) {
+            roundingModeReference.set(roundingMode);
+            return this;
+        }
 
         public Builder unaryOperation(Operation operation) {
             unaryOperations.add(operation);

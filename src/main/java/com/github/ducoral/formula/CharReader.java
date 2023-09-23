@@ -23,7 +23,7 @@ class CharReader {
 
     CharInfo next() {
         if (!hasNext())
-            return CharInfo.EOF;
+            return new CharInfo('\0', new Position(index + 1, line, column + 1));
 
         index++;
         if (input[index] == '\n') {

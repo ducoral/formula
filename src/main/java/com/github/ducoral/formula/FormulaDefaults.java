@@ -2,7 +2,7 @@ package com.github.ducoral.formula;
 
 import java.util.function.Consumer;
 
-import static com.github.ducoral.formula.Formula.*;
+import static com.github.ducoral.formula.Formula.Builder;
 
 public class FormulaDefaults {
 

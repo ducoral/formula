@@ -1,0 +1,13 @@
+package com.github.ducoral.formula;
+
+public enum FormulaExceptionType {
+
+    FUNCTION_NOT_DEFINED,
+    OPERATION_NOT_SUPPORTED,
+    INVALID_TOKEN,
+    UNEXPECTED_TOKEN,
+    INVALID_CHARACTER,
+    INVALID_DECIMAL_NUMBER,
+    INVALID_ESCAPE,
+    STRING_NOT_CLOSED_CORRECTLY
+}

@@ -36,7 +36,7 @@ class Utils {
         if (value instanceof Number number)
             return BigInteger.valueOf(number.longValue());
 
-        throw new FormulaException("Object " + value + " isn' a number");
+        return new BigInteger(String.valueOf(value));
     }
 
     static BigDecimal asBigDecimal(Object value) {
@@ -46,7 +46,7 @@ class Utils {
         if (value instanceof Number number)
             return BigDecimal.valueOf(number.doubleValue());
 
-        throw new FormulaException("Object " + value + " isn't a number");
+        return new BigDecimal(String.valueOf(value));
     }
 
     static Class<?> getTypeOf(Object object) {

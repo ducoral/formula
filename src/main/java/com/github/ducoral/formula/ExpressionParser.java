@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.FormulaExceptionType.INVALID_TOKEN;
+import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
 import static com.github.ducoral.formula.TokenType.*;
 
 class ExpressionParser {
@@ -27,7 +29,7 @@ class ExpressionParser {
 
     private Expression parseExpression() {
         return tokenizer.isEOF()
-                ? new Empty()
+                ? new Empty(Position.NULL)
                 : parseBinaryOperation(0);
     }
 
@@ -40,7 +42,7 @@ class ExpressionParser {
 
     private Expression parseUnaryOperation() {
         var operator = accept(OPERATOR);
-        return new UnaryOperation(operator.lexeme(), parseTerm());
+        return new UnaryOperation(operator.position(), operator.lexeme(), parseTerm());
     }
 
     private Expression parseBinaryOperation(int precedence) {
@@ -50,7 +52,7 @@ class ExpressionParser {
         var operation = parseBinaryOperation(precedence + 1);
         while (tokenizer.isOperatorOfPrecedence(precedence)) {
             var operator = accept(OPERATOR).lexeme();
-            operation = new BinaryOperation(operation, operator, parseBinaryOperation(precedence + 1));
+            operation = new BinaryOperation(operation.position(), operation, operator, parseBinaryOperation(precedence + 1));
         }
         return operation;
     }
@@ -61,22 +63,22 @@ class ExpressionParser {
         else if (tokenizer.isType(IDENTIFIER))
             return parseIdentifierOrFunction();
         else if (tokenizer.isType(INTEGER))
-            return new NumberLiteral(new BigInteger(accept(INTEGER).lexeme()));
+            return new NumberLiteral(tokenizer.position(), new BigInteger(accept(INTEGER).lexeme()));
         else if (tokenizer.isType(DECIMAL))
-            return new NumberLiteral(new BigDecimal(accept(DECIMAL).lexeme()));
+            return new NumberLiteral(tokenizer.position(), new BigDecimal(accept(DECIMAL).lexeme()));
         else if (tokenizer.isType(STRING)) {
-            return new StringLiteral(accept(STRING).lexeme());
+            return new StringLiteral(tokenizer.position(), accept(STRING).lexeme());
         } else if (tokenizer.isType(OPERATOR)) {
             return parseUnaryOperation();
         } else
-            throw new FormulaException("Token não esperado: ", tokenizer.token());
+            throw new FormulaException(INVALID_TOKEN, tokenizer.position(), tokenizer.token());
     }
 
     private Expression parseIdentifierOrFunction() {
         var identifier = accept(IDENTIFIER);
         return tokenizer.isLexeme("(")
                 ? parseFunction(identifier)
-                : new Identifier(identifier.lexeme());
+                : new Identifier(identifier.position(), identifier.lexeme());
     }
 
     private Expression parseFunction(Token identifier) {
@@ -90,7 +92,7 @@ class ExpressionParser {
             }
         }
         accept(")");
-        return new FunctionCall(identifier.lexeme(), parameters);
+        return new FunctionCall(identifier.position(), identifier.lexeme(), parameters);
     }
 
     private Token accept(TokenType... types) {
@@ -99,15 +101,13 @@ class ExpressionParser {
             tokenizer.tokenize();
             return token;
         } else
-            throw new FormulaException("Token inválido: %s. Era esperado %s no lugar", tokenizer.token().type(), Arrays.toString(types));
+            throw new FormulaException(UNEXPECTED_TOKEN, tokenizer.position(), tokenizer.type(), Arrays.toString(types));
     }
 
     private void accept(String lexeme) {
         if (tokenizer.isLexeme(lexeme)) {
             tokenizer.tokenize();
         } else
-            throw new FormulaException(
-                    "Token inválido: %s. Era esperado %s no lugar",
-                    tokenizer.token().lexeme(), lexeme);
+            throw new FormulaException(UNEXPECTED_TOKEN, tokenizer.position(), tokenizer.lexeme(), lexeme);
     }
 }

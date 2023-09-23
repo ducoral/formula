@@ -45,7 +45,7 @@ public class Parameters {
 
     public Object get(int index) {
         if (index < 0 || index >= count)
-            throw new FormulaException("Índice de parâmetro inválido: " + index);
+            throw new IndexOutOfBoundsException(index);
         return valueFunction.apply(index);
     }
 }

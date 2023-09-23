@@ -12,8 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment;
@@ -41,45 +41,22 @@ class ExpressionExplorer {
         var explainPane = new JEditorPane();
         var resultPane = new JEditorPane();
 
-        var model = new Model();
-        model.loadFromData();
+        var model = new SymbolTableModel().loadFromData();
         var table = new JTable(model);
 
-        Runnable evaluate = () -> {
-            try {
-                var result = formula.evaluate(inputPane.getText(), model.getScope());
-                resultPane.setText(String.valueOf(result));
-            } catch (Exception e) {
-                resultPane.setText(e.getMessage());
-            }
-        };
+        var loading = new AtomicBoolean(true);
 
-        var area = horiSplit(
-                vertSplit(
-                        vertSplit(buildInput(inputPane), buildExplain(explainPane)),
+        var evaluate = evaluateRunnable(loading, formula, model, inputPane, explainPane, resultPane);
+
+        var area = buildHoriSplit(
+                buildVertSplit(
+                        buildVertSplit(buildInputPanel(inputPane), buildExplainPanel(explainPane)),
                         buildResultPanel(resultPane)),
-                buildSymbolTable(table, evaluate));
+                buildSymbolTablePanel(table, evaluate));
 
         var bottomPanel = buildBottomPanel(inputPane, explainPane, resultPane, table);
 
-        final var loading = new AtomicBoolean(true);
-
-        configOnChange(inputPane, () -> {
-            try {
-                inputPane.setBackground(Color.WHITE);
-                var input = inputPane.getText();
-                explainPane.setText(input.isEmpty() ? "" : formula.explain(input));
-
-                if (!loading.get()) {
-                    DATA.setProperty("user.input", input);
-                    saveData();
-                }
-
-                evaluate.run();
-            } catch (Exception e) {
-                inputPane.setBackground(Color.MAGENTA);
-            }
-        });
+        configOnChange(inputPane, evaluate);
 
         if (DATA.containsKey("user.input"))
             inputPane.setText(DATA.getProperty("user.input"));
@@ -87,7 +64,7 @@ class ExpressionExplorer {
         loading.set(false);
 
         var frame = new JFrame();
-        frame.setTitle("Explorador de Expressão");
+        frame.setTitle(Strings.get("expression.explorer"));
         frame.setLayout(new BorderLayout());
         frame.add(area, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
@@ -95,6 +72,71 @@ class ExpressionExplorer {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private static Runnable evaluateRunnable(
+            AtomicBoolean loading,
+            Formula formula,
+            SymbolTableModel symbolTableModel,
+            JEditorPane inputPane,
+            JEditorPane explainPane,
+            JEditorPane resultPane) {
+        return () -> {
+            try {
+                var input = inputPane.getText();
+
+                try {
+                    explainPane.setText(input.isEmpty() ? "" : formula.explain(input));
+                    explainPane.setForeground(Color.BLACK);
+                } catch (Exception e) {
+                    explainPane.setForeground(Color.LIGHT_GRAY);
+                }
+
+                if (!loading.get()) {
+                    DATA.setProperty("user.input", input);
+                    saveData();
+                }
+
+                var result = formula.evaluate(inputPane.getText(), symbolTableModel.getScope());
+                resultPane.setText(String.valueOf(result));
+                resultPane.setForeground(Color.BLACK);
+            } catch (FormulaException e) {
+                formatErrorMessage(inputPane, resultPane, e);
+                resultPane.setForeground(Color.RED);
+            } catch (Exception e) {
+                resultPane.setText(e.getMessage());
+                resultPane.setForeground(Color.RED);
+            }
+        };
+    }
+
+    private static void formatErrorMessage(JEditorPane inputPane, JEditorPane resultPane, FormulaException e) {
+        var message = new StringBuilder(Strings.get("error"))
+                .append(":\n\t")
+                .append(e.getMessage())
+                .append("\n\n")
+                .append(Strings.get("position"))
+                .append(":\n");
+
+        var lines = inputPane.getText().split("\\n");
+        var line = 0;
+        while (line < lines.length) {
+            message
+                    .append('\t')
+                    .append(Utils.rightAlign(String.valueOf(line + 1), 2))
+                    .append(" | ")
+                    .append(lines[line])
+                    .append('\n');
+            line++;
+        }
+
+        message
+                .append('\t')
+                .append(Utils.fillSpaces(5))
+                .append(Utils.fill('-', e.position.column()))
+                .append("^\n\t");
+
+        resultPane.setText(message.toString());
     }
 
     private static void saveData() {
@@ -105,11 +147,11 @@ class ExpressionExplorer {
         }
     }
 
-    private static JComponent vertSplit(JComponent left, JComponent right) {
+    private static JComponent buildVertSplit(JComponent left, JComponent right) {
         return split(JSplitPane.VERTICAL_SPLIT, left, right);
     }
 
-    private static JComponent horiSplit(JComponent left, JComponent right) {
+    private static JComponent buildHoriSplit(JComponent left, JComponent right) {
         return split(JSplitPane.HORIZONTAL_SPLIT, left, right);
     }
 
@@ -121,31 +163,31 @@ class ExpressionExplorer {
         return panel;
     }
 
-    private static JPanel buildInput(JEditorPane inputPane) {
-        return newPanel(inputPane, "Expressão", dim(750, 100));
+    private static JPanel buildInputPanel(JEditorPane inputPane) {
+        return newPanel(inputPane, Strings.get("expression"), dim(750, 100));
     }
 
-    private static JPanel buildExplain(JEditorPane explainPane) {
-        var panel = newPanel(explainPane, "Explicação", dim(750, 500));
+    private static JPanel buildExplainPanel(JEditorPane explainPane) {
+        var panel = newPanel(explainPane, Strings.get("explanation"), dim(750, 450));
         explainPane.setEditable(false);
         explainPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         return panel;
     }
 
     private static JPanel buildResultPanel(JEditorPane resultPane) {
-        var panel = newPanel(resultPane, "Resultado", dim(750, 120));
+        var panel = newPanel(resultPane, Strings.get("result"), dim(750, 200));
         resultPane.setEditable(false);
         return panel;
     }
 
-    private static JPanel buildSymbolTable(JTable table, Runnable action) {
+    private static JPanel buildSymbolTablePanel(JTable table, Runnable action) {
         var header = new JPanel(new GridLayout(1, 2));
         var nameField = new JTextField();
         var valueField = new JTextField();
-        header.add(buildFieldPanel("Identificador", nameField));
-        header.add(buildFieldPanel("Valor", valueField));
+        header.add(buildFieldPanel(Strings.get("identifier"), nameField));
+        header.add(buildFieldPanel(Strings.get("value"), valueField));
 
-        var model = (Model) table.getModel();
+        var model = (SymbolTableModel) table.getModel();
 
         nameField.addActionListener(e -> valueField.requestFocus());
         valueField.addActionListener(e -> {
@@ -178,7 +220,7 @@ class ExpressionExplorer {
         area.add(header, BorderLayout.NORTH);
         area.add(table, BorderLayout.CENTER);
 
-        return newPanel(area, "Tabela de Símbolos", dim(250, 0));
+        return newPanel(area, Strings.get("symbol.table"), dim(250, 0));
     }
 
     private static JPanel buildFieldPanel(String label, JTextField field) {
@@ -273,11 +315,11 @@ class ExpressionExplorer {
         });
     }
 
-    private static class Model extends AbstractTableModel {
+    private static class SymbolTableModel extends AbstractTableModel {
 
         private final List<Row> rows = new ArrayList<>();
 
-        void loadFromData() {
+        SymbolTableModel loadFromData() {
             ExpressionExplorer.DATA
                     .keySet()
                     .stream()
@@ -287,6 +329,7 @@ class ExpressionExplorer {
                             setIdentifier(
                                     property.substring(IDENT_PREFIX.length()),
                                     ExpressionExplorer.DATA.getProperty(property)));
+            return this;
         }
 
         void removeIdentifier(String name) {

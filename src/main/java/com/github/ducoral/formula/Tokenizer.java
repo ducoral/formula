@@ -1,5 +1,6 @@
 package com.github.ducoral.formula;
 
+import static com.github.ducoral.formula.FormulaExceptionType.*;
 import static com.github.ducoral.formula.TokenType.*;
 
 class Tokenizer {
@@ -29,6 +30,18 @@ class Tokenizer {
         return token;
     }
 
+    TokenType type() {
+        return token.type();
+    }
+
+    Position position() {
+        return token.position();
+    }
+
+    String lexeme() {
+        return token.lexeme();
+    }
+
     boolean isType(TokenType... types) {
         for (var type : types)
             if (token.type() == type)
@@ -54,7 +67,7 @@ class Tokenizer {
         ignoreWhitespace();
 
         if (current.isEOF()) {
-            token = Token.EOF;
+            token = new Token(EOF, "EOF", current.position());
             return;
         }
 
@@ -74,7 +87,7 @@ class Tokenizer {
             next();
         }
         else
-            throw new FormulaException("Invalid character: %s", current);
+            throw new FormulaException(INVALID_CHARACTER, position(), current);
     }
 
     private void ignoreWhitespace() {
@@ -109,13 +122,13 @@ class Tokenizer {
             var missingIntegerPart = lexeme.indexOf(".") == 0;
             if (missingIntegerPart) {
                 appendLexemeAndNext();
-                throw new FormulaException("Número decimal inválido \"%s\", posição: %s", lexeme, position);
+                throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
             }
             appendLexemeAndNext();
             if (current.isOneOf('+', '-'))
                 appendLexemeAndNext();
             if (!current.isDigit())
-                throw new FormulaException("Número decimal inválido \"%s\", posição: %s", lexeme, position);
+                throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
             appendDigits();
         }
         token = new Token(DECIMAL, lexeme.toString(), position);
@@ -133,12 +146,12 @@ class Tokenizer {
             if (current.is('\\')) {
                 next();
                 if (!current.isOneOf('\\', '\"'))
-                    throw new FormulaException("Invalid scape \\%s in position: %s", current.value(), position);
+                    throw new FormulaException(INVALID_ESCAPE, position, current.value());
             }
             appendLexemeAndNext();
         }
         if (!current.isStringDelimiter())
-            throw new FormulaException("String don't closed in position: %s", position);
+            throw new FormulaException(STRING_NOT_CLOSED_CORRECTLY, position);
         token = new Token(STRING, lexeme.toString(), position);
         next();
     }

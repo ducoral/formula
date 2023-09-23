@@ -1,7 +1,7 @@
 package com.github.ducoral.formula;
 
 import static com.github.ducoral.formula.Expression.*;
-import static com.github.ducoral.formula.Utils.*;
+import static com.github.ducoral.formula.Utils.comma;
 
 class ExpressionAsStringVisitor implements Visitor {
 

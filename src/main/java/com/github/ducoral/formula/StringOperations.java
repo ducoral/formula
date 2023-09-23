@@ -4,7 +4,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.github.ducoral.formula.Formula.*;
+import static com.github.ducoral.formula.Formula.Builder;
 import static com.github.ducoral.formula.FormulaDefaults.*;
 
 class StringOperations implements Consumer<Builder> {

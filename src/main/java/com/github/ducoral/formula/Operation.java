@@ -10,9 +10,6 @@ public record Operation(Class<?> type, Operator operator, OperationAction action
 
     @Override
     public int compareTo(Operation other) {
-        if (operator != other.operator)
-            throw new FormulaException("Operadores diferentes");
-
         if (type == other.type)
             return 0;
 
