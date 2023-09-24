@@ -7,7 +7,7 @@ import java.util.function.Function;
 import static com.github.ducoral.formula.Formula.Builder;
 import static com.github.ducoral.formula.FormulaDefaults.*;
 
-class StringOperations implements Consumer<Builder> {
+class OperationsString implements Consumer<Builder> {
 
     @Override
     public void accept(Builder builder) {
@@ -26,7 +26,7 @@ class StringOperations implements Consumer<Builder> {
         return new Operation(
                 String.class,
                 operator,
-                (operands, chain) -> action.apply(operands.getLeftAsString(), operands.getRightAsString()));
+                (operands, chain) -> action.apply(operands.left().asString(), operands.right().asString()));
     }
 
     private static BiFunction<String, String, Object> compare(Function<Integer, Boolean> resultFunction) {

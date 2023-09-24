@@ -6,7 +6,6 @@ import static com.github.ducoral.formula.Formula.Builder;
 
 public class FormulaDefaults {
 
-    public static final Precedence UNARY = new Precedence(0);
     public static final Precedence ARITHMETIC_1 = new Precedence(10);
     public static final Precedence ARITHMETIC_2 = new Precedence(20);
     public static final Precedence RELATIONAL = new Precedence(30);
@@ -27,10 +26,10 @@ public class FormulaDefaults {
     public static final Operator AND = new Operator("&&", LOGICAL);
     public static final Operator OR = new Operator("||", LOGICAL);
 
-    public static final Consumer<Builder> NUMBER_OPERATIONS = new NumberOperations();
-    public static final Consumer<Builder> STRING_OPERATIONS = new StringOperations();
-    public static final Consumer<Builder> LOGICAL_OPERATIONS = new LogicalOperations();
-    public static final Consumer<Builder> DEFAULT_OPERATIONS = NUMBER_OPERATIONS
-            .andThen(STRING_OPERATIONS)
-            .andThen(LOGICAL_OPERATIONS);
+    public static final Consumer<Builder> OPERATIONS_NUMBER = new OperationsNumber();
+    public static final Consumer<Builder> OPERATIONS_STRING = new OperationsString();
+    public static final Consumer<Builder> OPERATIONS_LOGICAL = new OperationsLogical();
+    public static final Consumer<Builder> OPERATIONS_DEFAULT = OPERATIONS_NUMBER
+            .andThen(OPERATIONS_STRING)
+            .andThen(OPERATIONS_LOGICAL);
 }

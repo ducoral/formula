@@ -4,16 +4,11 @@ public class FormulaException extends RuntimeException {
 
     public final Position position;
 
-    public final FormulaExceptionType exceptionType;
+    public final FormulaExceptionType type;
 
-    FormulaException(FormulaExceptionType exceptionType, Position position, Object... args) {
-        super(getMessage(exceptionType, args));
-        this.exceptionType = exceptionType;
+    FormulaException(FormulaExceptionType type, Position position, Object... args) {
+        super(Strings.get(type.asMessageKey(), args));
+        this.type = type;
         this.position = position;
-    }
-
-    private static String getMessage(FormulaExceptionType exceptionType, Object... args) {
-        var messageKey = exceptionType.name().toLowerCase().replace('_', '.');
-        return Strings.get(messageKey, args);
     }
 }

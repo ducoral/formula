@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.github.ducoral.formula.Expression.*;
-import static com.github.ducoral.formula.Utils.getTypeOf;
 
 class Evaluator implements Visitor {
 
@@ -19,9 +18,9 @@ class Evaluator implements Visitor {
         this.scope = scope;
     }
 
-    public Object evaluate(Expression expression) {
+    public Value evaluate(Expression expression) {
         expression.accept(this);
-        return result;
+        return new Value(result);
     }
 
     @Override
@@ -41,20 +40,22 @@ class Evaluator implements Visitor {
 
     @Override
     public void visit(UnaryOperation unaryOperation) {
-       unaryOperation.right().accept(this);
+        unaryOperation.right().accept(this);
+        var value = new Value(result);
         var operationResolver =
-               new OperationResolver(formula.unaryOperations, getTypeOf(result), unaryOperation.operator());
-       result = operationResolver.chain(operandsOfUnary(unaryOperation, result));
+                new OperationResolver(formula.unaryOperations, value.getType(), unaryOperation.operator());
+        result = operationResolver.chain(operandsOfUnary(unaryOperation, value));
     }
 
     @Override
     public void visit(BinaryOperation binaryOperation) {
         binaryOperation.left().accept(this);
+        var value = new Value(result);
         var operationResolver =
-                new OperationResolver(formula.binaryOperations, getTypeOf(result), binaryOperation.operator());
-        var operands = operandsOfBinary(binaryOperation.position(), result, binaryOperation.operator(), () -> {
-           binaryOperation.right().accept(this);
-           return result;
+                new OperationResolver(formula.binaryOperations, value.getType(), binaryOperation.operator());
+        var operands = operandsOfBinary(binaryOperation.position(), value, binaryOperation.operator(), () -> {
+            binaryOperation.right().accept(this);
+            return new Value(result);
         });
         result = operationResolver.chain(operands);
     }
@@ -66,24 +67,24 @@ class Evaluator implements Visitor {
         var call = formula.functions.get(function.name());
         var parameters = new Parameters(function.parameters().size(), index -> {
             function.parameters().get(index).accept(this);
-            return result;
+            return new Value(result);
         });
         result = call.apply(parameters);
     }
 
-    private static Operands operandsOfUnary(UnaryOperation operation, Object value) {
+    private static Operands operandsOfUnary(UnaryOperation operation, Value value) {
         return new Operands(
                 operation.position(),
                 () -> null,
                 () -> value,
-                operands -> String.format("%s %s", operation.operator(), operands.getRightType()));
+                operands -> String.format("%s %s", operation.operator(), operands.right().getType()));
     }
 
-    private static Operands operandsOfBinary(Position position, Object left, String operator, Supplier<Object> rightSupplier) {
+    private static Operands operandsOfBinary(Position position, Value left, String operator, Supplier<Value> rightSupplier) {
         return new Operands(
                 position,
                 () -> left,
                 rightSupplier,
-                operands -> String.format("%s %s %s", operands.getLeftType(), operator, operands.getRightType()));
+                operands -> String.format("%s %s %s", operands.left().getType(), operator, operands.right().getType()));
     }
 }

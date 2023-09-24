@@ -23,7 +23,7 @@ class OperationResolver implements OperationChain {
     @Override
     public Object chain(Operands operands) {
         if (chainIndex == operations.size())
-            throw new FormulaException(OPERATION_NOT_SUPPORTED, operands.getPosition(), operands);
+            throw new FormulaException(OPERATION_NOT_SUPPORTED, operands.position(), operands);
 
         var operation = operations.get(chainIndex++);
 

@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 import static com.github.ducoral.formula.Formula.Builder;
 import static com.github.ducoral.formula.FormulaDefaults.*;
 
-class NumberOperations implements Consumer<Builder> {
+class OperationsNumber implements Consumer<Builder> {
 
     @Override
     public void accept(Builder builder) {
@@ -39,12 +39,11 @@ class NumberOperations implements Consumer<Builder> {
             Function<BigDecimal, Object> decimalAction) {
 
         return (operands, chainer) -> {
-            if (!operands.isRightNumber())
-                return chainer.chain(operands);
-
-            return operands.isRightInteger()
-                    ? integerAction.apply(operands.getRightAsBigInteger())
-                    : decimalAction.apply(operands.getRightAsBigDecimal());
+            if (operands.right().isNumber())
+                return operands.right().isInteger()
+                        ? integerAction.apply(operands.right().asBigInteger())
+                        : decimalAction.apply(operands.right().asBigDecimal());
+            return chainer.chain(operands);
         };
     }
 
@@ -53,23 +52,22 @@ class NumberOperations implements Consumer<Builder> {
             BiFunction<BigDecimal, BigDecimal, Object> decimalAction) {
 
         return (operands, chainer) -> {
-            if (!operands.isRightNumber())
-                return chainer.chain(operands);
-
-            return operands.isLeftInteger() && operands.isRightInteger()
-                    ? integerAction.apply(operands.getLeftAsBigInteger(), operands.getRightAsBigInteger())
-                    : decimalAction.apply(operands.getLeftAsBigDecimal(), operands.getRightAsBigDecimal());
+            if (operands.right().isNumber())
+                return operands.left().isInteger() && operands.right().isInteger()
+                        ? integerAction.apply(operands.left().asBigInteger(), operands.right().asBigInteger())
+                        : decimalAction.apply(operands.left().asBigDecimal(), operands.right().asBigDecimal());
+            return chainer.chain(operands);
         };
     }
 
     private static OperationAction operateCompareTo(Predicate<Integer> predicate) {
 
         return (operands, chainer) -> {
-            if (!operands.isRightNumber())
+            if (!operands.right().isNumber())
                 return chainer.chain(operands);
 
-            var left = operands.getLeftAsBigDecimal();
-            var right = operands.getRightAsBigDecimal();
+            var left = operands.left().asBigDecimal();
+            var right = operands.right().asBigDecimal();
             return predicate.test(left.compareTo(right));
         };
     }
