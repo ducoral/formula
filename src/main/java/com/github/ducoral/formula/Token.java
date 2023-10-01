@@ -8,13 +8,9 @@ record Token(TokenType type, String lexeme, Position position) {
 
     @Override
     public String toString() {
-        var escaped = lexeme
+        return lexeme
                 .replace("\n", "\\n")
                 .replace("\t", "\\t")
                 .replace("\"", "\\\"");
-
-        return String.format(
-                "%s[type=%s, lexeme=\"%s\", position=%s]",
-                getClass().getSimpleName(), type, escaped, position);
     }
 }

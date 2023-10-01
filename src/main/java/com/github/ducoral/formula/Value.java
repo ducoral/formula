@@ -11,6 +11,10 @@ public class Value {
         this.value = value;
     }
 
+    public boolean isNull() {
+        return value == null;
+    }
+
     public boolean isTruthful() {
         if (value instanceof Boolean booleanValue)
             return booleanValue;

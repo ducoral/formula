@@ -84,25 +84,27 @@ class ExpressionExplorer {
         return () -> {
             try {
                 var input = inputPane.getText();
+                var explainResult = formula.explain(input);
 
-                try {
-                    explainPane.setText(input.isEmpty() ? "" : formula.explain(input));
+                if (explainResult.isOK()) {
+                    explainPane.setText(explainResult.value());
                     explainPane.setForeground(Color.BLACK);
-                } catch (Exception e) {
+                } else
                     explainPane.setForeground(Color.LIGHT_GRAY);
-                }
 
                 if (!loading.get()) {
                     DATA.setProperty("user.input", input);
                     saveData();
                 }
 
-                var result = formula.evaluate(inputPane.getText(), symbolTableModel.getScope());
-                resultPane.setText(String.valueOf(result));
-                resultPane.setForeground(Color.BLACK);
-            } catch (FormulaException e) {
-                formatErrorMessage(inputPane, resultPane, e);
-                resultPane.setForeground(Color.RED);
+                var evaluateResult = formula.evaluate(inputPane.getText(), symbolTableModel.getScope());
+                if (evaluateResult.isOK()) {
+                    resultPane.setText(evaluateResult.value().asString());
+                    resultPane.setForeground(Color.BLACK);
+                } else {
+                    resultPane.setText(evaluateResult.formattedErrorMessage());
+                    resultPane.setForeground(Color.RED);
+                }
             } catch (Exception e) {
                 resultPane.setText(e.getMessage());
                 resultPane.setForeground(Color.RED);

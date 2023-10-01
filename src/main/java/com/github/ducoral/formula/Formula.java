@@ -37,20 +37,45 @@ public class Formula {
         operatorPrecedence = new OperatorPrecedence(binaryOperations);
     }
 
-    public Expression parse(String input) {
+    public Result<Expression> parse(String input) {
+        if (input == null || input.isEmpty())
+            return new Result<>(new Expression.Empty(Position.NULL));
+
         var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
-        return new ExpressionParser(tokenizer, operatorPrecedence)
-                .parse();
+        try {
+            var expression = new ExpressionParser(tokenizer, operatorPrecedence)
+                    .parse();
+            return new Result<>(expression);
+        } catch (FormulaException exception) {
+            return new Result<>(input, exception);
+        }
     }
 
-    public Object evaluate(String input, Map<String, Object> scope) {
-        var expression = parse(input);
-        var evaluator = new Evaluator(this, scope);
-        return evaluator.evaluate(expression);
+    public Result<Value> evaluate(String input, Map<String, Object> scope) {
+        if (input == null || input.isEmpty())
+            return new Result<>(new Value(null));
+
+        try {
+            var parseResult = parse(input);
+            if (!parseResult.isOK())
+                return new Result<>(parseResult);
+            var value = new Evaluator(this, scope)
+                    .evaluate(parseResult.value());
+            return new Result<>(value);
+        } catch (FormulaException exception) {
+            return new Result<>(input, exception);
+        }
     }
 
-    public String explain(String input) {
-        var expression = parse(input);
+    public Result<String> explain(String input) {
+        if (input == null || input.isEmpty())
+            return new Result<>("");
+
+        var parseResult = parse(input);
+        if (!parseResult.isOK())
+            return new Result<>(parseResult);
+
+        var expression = parseResult.value();
         var asStr = ExpressionAsStringVisitor.asString(expression);
         var asTextTree = ExpressionAsTextTreeVisitor.asTextTree(expression).split("\\n");
         int linesWidth = String.valueOf(asTextTree.length).length();
@@ -69,7 +94,8 @@ public class Formula {
                     .append(rightAlign(String.valueOf(line + 1), linesWidth))
                     .append("| ")
                     .append(asTextTree[line]);
-        return builder.toString();
+
+        return new Result<>(builder.toString());
     }
 
     public void explorer() {
@@ -85,7 +111,6 @@ public class Formula {
         final List<Operation> binaryOperations = new ArrayList<>();
 
         final AtomicReference<RoundingMode> roundingModeReference = new AtomicReference<>(RoundingMode.HALF_UP);
-
 
         public Builder roudingMode(RoundingMode roundingMode) {
             roundingModeReference.set(roundingMode);
