@@ -1,11 +1,14 @@
 package com.github.ducoral.formula;
 
-import java.util.Locale;
 import java.util.Map;
 
 public class Tests {
 
     public static void main(String[] args) throws Exception {
+
+        System.out.println(Double.parseDouble("0."));
+
+        System.exit(0);
 
 //        Locale.setDefault(Locale.ENGLISH);
 //        Locale.setDefault(new Locale("es", "ES"));

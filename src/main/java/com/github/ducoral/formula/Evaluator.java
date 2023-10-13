@@ -29,8 +29,8 @@ class Evaluator implements Visitor {
     }
 
     @Override
-    public void visit(StringLiteral string) {
-        result = string.value();
+    public void visit(StringLiteral stringLiteral) {
+        result = stringLiteral.value();
     }
 
     @Override
@@ -61,12 +61,12 @@ class Evaluator implements Visitor {
     }
 
     @Override
-    public void visit(FunctionCall function) {
-        if (!formula.functions.containsKey(function.name()))
-            throw new FormulaException(FormulaExceptionType.FUNCTION_NOT_DEFINED, function.position(), function);
-        var call = formula.functions.get(function.name());
-        var parameters = new Parameters(function.parameters().size(), index -> {
-            function.parameters().get(index).accept(this);
+    public void visit(FunctionCall functionCall) {
+        if (!formula.functions.containsKey(functionCall.name()))
+            throw new FormulaException(FormulaExceptionType.FUNCTION_NOT_DEFINED, functionCall.position(), functionCall);
+        var call = formula.functions.get(functionCall.name());
+        var parameters = new Parameters(functionCall.parameters().size(), index -> {
+            functionCall.parameters().get(index).accept(this);
             return new Value(result);
         });
         result = call.apply(parameters);

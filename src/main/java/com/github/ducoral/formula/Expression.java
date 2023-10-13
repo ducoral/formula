@@ -10,7 +10,7 @@ public interface Expression {
 
         void visit(NumberLiteral numberLiteral);
 
-        void visit(StringLiteral string);
+        void visit(StringLiteral stringLiteral);
 
         void visit(Identifier identifier);
 
@@ -18,7 +18,7 @@ public interface Expression {
 
         void visit(BinaryOperation binaryOperation);
 
-        void visit(FunctionCall function);
+        void visit(FunctionCall functionCall);
     }
 
     Position position();

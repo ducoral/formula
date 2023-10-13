@@ -24,8 +24,8 @@ class ExpressionAsTextTreeVisitor implements Visitor {
     }
 
     @Override
-    public void visit(StringLiteral string) {
-        result = "\"" + string.value() + "\"";
+    public void visit(StringLiteral stringLiteral) {
+        result = "\"" + stringLiteral.value() + "\"";
     }
 
     @Override
@@ -68,10 +68,10 @@ class ExpressionAsTextTreeVisitor implements Visitor {
     }
 
     @Override
-    public void visit(FunctionCall function) {
-        var content = splitLines(function.name() + "(");
+    public void visit(FunctionCall functionCall) {
+        var content = splitLines(functionCall.name() + "(");
         var comma = comma();
-        for (var parameter : function.parameters()) {
+        for (var parameter : functionCall.parameters()) {
             parameter.accept(this);
             content = concatenate(content, splitLines(comma.toString()), 0);
             content = concatenate(content, splitLines(result), 0);

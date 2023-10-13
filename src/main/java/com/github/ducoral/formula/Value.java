@@ -39,6 +39,10 @@ public class Value {
         return value instanceof String;
     }
 
+    public <T> boolean isType(Class<T> type) {
+        return type.isInstance(value);
+    }
+
     public BigInteger asBigInteger() {
         if (value instanceof BigInteger)
             return (BigInteger) value;
@@ -61,6 +65,10 @@ public class Value {
 
     public String asString() {
         return value instanceof String string ? string : String.valueOf(value);
+    }
+
+    public <T> T asType(Class<T> type) {
+        return type.cast(value);
     }
 
     public Class<?> getType() {

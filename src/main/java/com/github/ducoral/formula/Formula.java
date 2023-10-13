@@ -38,7 +38,9 @@ public class Formula {
     }
 
     public Result<Expression> parse(String input) {
-        if (input == null || input.isEmpty())
+        assert input != null;
+
+        if (input.isEmpty())
             return new Result<>(new Expression.Empty(Position.NULL));
 
         var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
@@ -51,8 +53,14 @@ public class Formula {
         }
     }
 
+    public Result<Value> evaluate(String input) {
+        return evaluate(input, Map.of());
+    }
+
     public Result<Value> evaluate(String input, Map<String, Object> scope) {
-        if (input == null || input.isEmpty())
+        assert input != null;
+
+        if (input.isEmpty())
             return new Result<>(new Value(null));
 
         try {
@@ -68,7 +76,9 @@ public class Formula {
     }
 
     public Result<String> explain(String input) {
-        if (input == null || input.isEmpty())
+        assert input != null;
+
+        if (input.isEmpty())
             return new Result<>("");
 
         var parseResult = parse(input);

@@ -85,8 +85,7 @@ class Tokenizer {
         else if (current.isSymbol()) {
             token = new Token(SYMBOL, current.asString(), current.position());
             next();
-        }
-        else
+        } else
             throw new FormulaException(INVALID_CHARACTER, position(), current);
     }
 
@@ -109,7 +108,9 @@ class Tokenizer {
     private void tokenizeNumber() {
         var position = current.position();
         appendDigits();
-        if (current.is('.'))
+        if (current.isOneOf('e', 'E'))
+            tokenizeCientificNotation(position);
+        else if (current.is('.'))
             tokenizeDecimal(position);
         else
             token = new Token(INTEGER, lexeme.toString(), position);
@@ -118,12 +119,14 @@ class Tokenizer {
     private void tokenizeDecimal(Position position) {
         appendLexemeAndNext();
         appendDigits();
+        if (current.isOneOf('e', 'E'))
+            tokenizeCientificNotation(position);
+        else
+            token = new Token(DECIMAL, lexeme.toString(), position);
+    }
+
+    private void tokenizeCientificNotation(Position position) {
         if (current.isOneOf('e', 'E')) {
-            var missingIntegerPart = lexeme.indexOf(".") == 0;
-            if (missingIntegerPart) {
-                appendLexemeAndNext();
-                throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
-            }
             appendLexemeAndNext();
             if (current.isOneOf('+', '-'))
                 appendLexemeAndNext();
@@ -141,16 +144,17 @@ class Tokenizer {
 
     private void tokenizeString() {
         var position = current.position();
+        var delimiter = current.value();
         next();
-        while (!current.isEOF() && !current.isStringDelimiter()) {
+        while (!current.isEOF() && !current.is(delimiter)) {
             if (current.is('\\')) {
                 next();
-                if (!current.isOneOf('\\', '\"'))
+                if (!current.isOneOf('\\', delimiter))
                     throw new FormulaException(INVALID_ESCAPE, position, current.value());
             }
             appendLexemeAndNext();
         }
-        if (!current.isStringDelimiter())
+        if (!current.is(delimiter))
             throw new FormulaException(STRING_NOT_CLOSED_CORRECTLY, position);
         token = new Token(STRING, lexeme.toString(), position);
         next();

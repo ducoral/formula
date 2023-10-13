@@ -21,10 +21,10 @@ class ExpressionAsStringVisitor implements Visitor {
     }
 
     @Override
-    public void visit(StringLiteral string) {
+    public void visit(StringLiteral stringLiteral) {
         stringBuilder
                 .append('"')
-                .append(string.value())
+                .append(stringLiteral.value())
                 .append('"');
     }
 
@@ -56,12 +56,12 @@ class ExpressionAsStringVisitor implements Visitor {
     }
 
     @Override
-    public void visit(FunctionCall function) {
+    public void visit(FunctionCall functionCall) {
         stringBuilder
-                .append(function.name())
+                .append(functionCall.name())
                 .append('(');
         var comma = comma();
-        function
+        functionCall
                 .parameters()
                 .forEach(parameter -> {
                     stringBuilder.append(comma);
