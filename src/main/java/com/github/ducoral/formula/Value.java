@@ -2,6 +2,8 @@ package com.github.ducoral.formula;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Value {
 
@@ -31,8 +33,13 @@ public class Value {
     }
 
     public boolean isInteger() {
-        return (value instanceof Number number)
-                && number.doubleValue() == (int) number.doubleValue();
+        return isType(Byte.class)
+                || isType(Short.class)
+                || isType(Integer.class)
+                || isType(Long.class)
+                || isType(BigInteger.class)
+                || isType(AtomicInteger.class)
+                || isType(AtomicLong.class);
     }
 
     public boolean isString() {
@@ -44,23 +51,15 @@ public class Value {
     }
 
     public BigInteger asBigInteger() {
-        if (value instanceof BigInteger)
-            return (BigInteger) value;
-
-        if (value instanceof Number number)
-            return BigInteger.valueOf(number.longValue());
-
-        return new BigInteger(String.valueOf(value));
+        return value instanceof BigInteger bigInteger
+                ? bigInteger
+                : new BigInteger(String.valueOf(value));
     }
 
     public BigDecimal asBigDecimal() {
-        if (value instanceof BigDecimal)
-            return (BigDecimal) value;
-
-        if (value instanceof Number number)
-            return BigDecimal.valueOf(number.doubleValue());
-
-        return new BigDecimal(String.valueOf(value));
+        return value instanceof BigDecimal bigDecimal
+                ? bigDecimal
+                : new BigDecimal(String.valueOf(value));
     }
 
     public String asString() {

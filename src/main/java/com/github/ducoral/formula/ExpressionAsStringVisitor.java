@@ -1,6 +1,12 @@
 package com.github.ducoral.formula;
 
-import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.Expression.BinaryOperation;
+import static com.github.ducoral.formula.Expression.FunctionCall;
+import static com.github.ducoral.formula.Expression.Identifier;
+import static com.github.ducoral.formula.Expression.NumberLiteral;
+import static com.github.ducoral.formula.Expression.StringLiteral;
+import static com.github.ducoral.formula.Expression.UnaryOperation;
+import static com.github.ducoral.formula.Expression.Visitor;
 import static com.github.ducoral.formula.Utils.comma;
 
 class ExpressionAsStringVisitor implements Visitor {

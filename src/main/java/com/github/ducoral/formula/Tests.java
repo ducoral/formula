@@ -6,13 +6,6 @@ public class Tests {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println(Double.parseDouble("0."));
-
-        System.exit(0);
-
-//        Locale.setDefault(Locale.ENGLISH);
-//        Locale.setDefault(new Locale("es", "ES"));
-
         var formula = Formula.builder()
                 .configure(FormulaDefaults.OPERATIONS_LOGICAL)
                 .configure(FormulaDefaults.OPERATIONS_DEFAULT)
@@ -20,7 +13,7 @@ public class Tests {
                         params -> params.get(0).asBigInteger().add(params.get(1).asBigInteger())))
                 .build();
 
-        String input = "15 + 12 * 30 * 15  soma(15, 25) + aa";
+        String input = "?";
         var result = formula.evaluate(input, Map.of("aa", 40));
 
         if (result.isOK())

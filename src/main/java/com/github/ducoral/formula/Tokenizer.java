@@ -1,7 +1,16 @@
 package com.github.ducoral.formula;
 
-import static com.github.ducoral.formula.FormulaExceptionType.*;
-import static com.github.ducoral.formula.TokenType.*;
+import static com.github.ducoral.formula.FormulaExceptionType.INVALID_CHARACTER;
+import static com.github.ducoral.formula.FormulaExceptionType.INVALID_DECIMAL_NUMBER;
+import static com.github.ducoral.formula.FormulaExceptionType.INVALID_ESCAPE;
+import static com.github.ducoral.formula.FormulaExceptionType.STRING_NOT_CLOSED_CORRECTLY;
+import static com.github.ducoral.formula.TokenType.DECIMAL;
+import static com.github.ducoral.formula.TokenType.EOF;
+import static com.github.ducoral.formula.TokenType.IDENTIFIER;
+import static com.github.ducoral.formula.TokenType.INTEGER;
+import static com.github.ducoral.formula.TokenType.OPERATOR;
+import static com.github.ducoral.formula.TokenType.STRING;
+import static com.github.ducoral.formula.TokenType.SYMBOL;
 
 class Tokenizer {
 
@@ -16,6 +25,8 @@ class Tokenizer {
     private CharInfo current;
 
     private Token token;
+
+    private boolean flagDigits;
 
     Tokenizer(CharReader charReader, OperatorParser operatorParser, OperatorPrecedence operatorPrecedence) {
         this.charReader = charReader;
@@ -86,7 +97,7 @@ class Tokenizer {
             token = new Token(SYMBOL, current.asString(), current.position());
             next();
         } else
-            throw new FormulaException(INVALID_CHARACTER, position(), current);
+            throw new FormulaException(INVALID_CHARACTER, current.position(), current.value());
     }
 
     private void ignoreWhitespace() {
@@ -107,6 +118,7 @@ class Tokenizer {
 
     private void tokenizeNumber() {
         var position = current.position();
+        flagDigits = false;
         appendDigits();
         if (current.isOneOf('e', 'E'))
             tokenizeCientificNotation(position);
@@ -121,25 +133,27 @@ class Tokenizer {
         appendDigits();
         if (current.isOneOf('e', 'E'))
             tokenizeCientificNotation(position);
-        else
+        else if (flagDigits)
             token = new Token(DECIMAL, lexeme.toString(), position);
+        else
+            throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
     }
 
     private void tokenizeCientificNotation(Position position) {
-        if (current.isOneOf('e', 'E')) {
+        appendLexemeAndNext();
+        if (current.isOneOf('+', '-'))
             appendLexemeAndNext();
-            if (current.isOneOf('+', '-'))
-                appendLexemeAndNext();
-            if (!current.isDigit())
-                throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
-            appendDigits();
-        }
+        if (!current.isDigit())
+            throw new FormulaException(INVALID_DECIMAL_NUMBER, position, lexeme);
+        appendDigits();
         token = new Token(DECIMAL, lexeme.toString(), position);
     }
 
     private void appendDigits() {
-        while (current.isDigit())
+        while (current.isDigit()) {
+            flagDigits = true;
             appendLexemeAndNext();
+        }
     }
 
     private void tokenizeString() {
@@ -155,7 +169,7 @@ class Tokenizer {
             appendLexemeAndNext();
         }
         if (!current.is(delimiter))
-            throw new FormulaException(STRING_NOT_CLOSED_CORRECTLY, position);
+            throw new FormulaException(STRING_NOT_CLOSED_CORRECTLY, position, delimiter + lexeme.toString());
         token = new Token(STRING, lexeme.toString(), position);
         next();
     }

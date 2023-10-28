@@ -5,10 +5,20 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.Expression.BinaryOperation;
+import static com.github.ducoral.formula.Expression.FunctionCall;
+import static com.github.ducoral.formula.Expression.Identifier;
+import static com.github.ducoral.formula.Expression.NumberLiteral;
+import static com.github.ducoral.formula.Expression.StringLiteral;
+import static com.github.ducoral.formula.Expression.UnaryOperation;
 import static com.github.ducoral.formula.FormulaExceptionType.INVALID_TOKEN;
 import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
-import static com.github.ducoral.formula.TokenType.*;
+import static com.github.ducoral.formula.TokenType.DECIMAL;
+import static com.github.ducoral.formula.TokenType.EOF;
+import static com.github.ducoral.formula.TokenType.IDENTIFIER;
+import static com.github.ducoral.formula.TokenType.INTEGER;
+import static com.github.ducoral.formula.TokenType.OPERATOR;
+import static com.github.ducoral.formula.TokenType.STRING;
 
 class ExpressionParser {
 
@@ -28,9 +38,7 @@ class ExpressionParser {
     }
 
     private Expression parseExpression() {
-        return tokenizer.isEOF()
-                ? new Empty(Position.NULL)
-                : parseBinaryOperation(0);
+        return parseBinaryOperation(0);
     }
 
     private Expression parseScope() {

@@ -1,17 +1,25 @@
 package com.github.ducoral.formula;
 
+import java.text.MessageFormat;
+
 public enum FormulaExceptionType {
 
-    FUNCTION_NOT_DEFINED,
-    INVALID_CHARACTER,
-    INVALID_DECIMAL_NUMBER,
-    INVALID_ESCAPE,
-    INVALID_TOKEN,
-    OPERATION_NOT_SUPPORTED,
-    STRING_NOT_CLOSED_CORRECTLY,
-    UNEXPECTED_TOKEN;
+    FUNCTION_NOT_DEFINED("function.not.defined"),
+    INVALID_CHARACTER("invalid.character"),
+    INVALID_DECIMAL_NUMBER("invalid.decimal.number"),
+    INVALID_ESCAPE("invalid.escape"),
+    INVALID_TOKEN("invalid.token"),
+    OPERATION_NOT_SUPPORTED("operation.not.supported"),
+    STRING_NOT_CLOSED_CORRECTLY("string.not.closed.correctly"),
+    UNEXPECTED_TOKEN("unexpected.token");
 
-    String asMessageKey() {
-        return name().toLowerCase().replace('_', '.');
+    private final String key;
+
+    String formatMessage(Object... arguments) {
+        return MessageFormat.format(Strings.get(key), arguments);
+    }
+
+    FormulaExceptionType(String key) {
+        this.key = key;
     }
 }

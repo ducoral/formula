@@ -3,7 +3,13 @@ package com.github.ducoral.formula;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.github.ducoral.formula.Expression.*;
+import static com.github.ducoral.formula.Expression.BinaryOperation;
+import static com.github.ducoral.formula.Expression.FunctionCall;
+import static com.github.ducoral.formula.Expression.Identifier;
+import static com.github.ducoral.formula.Expression.NumberLiteral;
+import static com.github.ducoral.formula.Expression.StringLiteral;
+import static com.github.ducoral.formula.Expression.UnaryOperation;
+import static com.github.ducoral.formula.Expression.Visitor;
 
 class Evaluator implements Visitor {
 
@@ -63,7 +69,7 @@ class Evaluator implements Visitor {
     @Override
     public void visit(FunctionCall functionCall) {
         if (!formula.functions.containsKey(functionCall.name()))
-            throw new FormulaException(FormulaExceptionType.FUNCTION_NOT_DEFINED, functionCall.position(), functionCall);
+            throw new FormulaException(FormulaExceptionType.FUNCTION_NOT_DEFINED, functionCall.position(), functionCall.name() + "()");
         var call = formula.functions.get(functionCall.name());
         var parameters = new Parameters(functionCall.parameters().size(), index -> {
             functionCall.parameters().get(index).accept(this);
@@ -77,7 +83,10 @@ class Evaluator implements Visitor {
                 operation.position(),
                 () -> null,
                 () -> value,
-                operands -> String.format("%s %s", operation.operator(), operands.right().getType()));
+                operands -> String.format(
+                        "%s %s",
+                        operation.operator(),
+                        operands.right().getType().getSimpleName()));
     }
 
     private static Operands operandsOfBinary(Position position, Value left, String operator, Supplier<Value> rightSupplier) {
@@ -85,6 +94,10 @@ class Evaluator implements Visitor {
                 position,
                 () -> left,
                 rightSupplier,
-                operands -> String.format("%s %s %s", operands.left().getType(), operator, operands.right().getType()));
+                operands -> String.format(
+                        "%s %s %s",
+                        operands.left().getType().getSimpleName(),
+                        operator,
+                        operands.right().getType().getSimpleName()));
     }
 }

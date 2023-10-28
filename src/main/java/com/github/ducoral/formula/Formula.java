@@ -1,12 +1,18 @@
 package com.github.ducoral.formula;
 
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.github.ducoral.formula.Utils.*;
+import static com.github.ducoral.formula.Utils.fill;
+import static com.github.ducoral.formula.Utils.fillSpaces;
+import static com.github.ducoral.formula.Utils.rightAlign;
 
 public class Formula {
 
@@ -43,8 +49,8 @@ public class Formula {
         if (input.isEmpty())
             return new Result<>(new Expression.Empty(Position.NULL));
 
-        var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
         try {
+            var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
             var expression = new ExpressionParser(tokenizer, operatorPrecedence)
                     .parse();
             return new Result<>(expression);

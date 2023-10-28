@@ -5,8 +5,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.github.ducoral.formula.Expression.*;
-import static com.github.ducoral.formula.Utils.*;
+import static com.github.ducoral.formula.Expression.BinaryOperation;
+import static com.github.ducoral.formula.Expression.FunctionCall;
+import static com.github.ducoral.formula.Expression.Identifier;
+import static com.github.ducoral.formula.Expression.NumberLiteral;
+import static com.github.ducoral.formula.Expression.StringLiteral;
+import static com.github.ducoral.formula.Expression.UnaryOperation;
+import static com.github.ducoral.formula.Expression.Visitor;
+import static com.github.ducoral.formula.Utils.centralize;
+import static com.github.ducoral.formula.Utils.comma;
+import static com.github.ducoral.formula.Utils.fillSpaces;
+import static com.github.ducoral.formula.Utils.splitLines;
 
 class ExpressionAsTextTreeVisitor implements Visitor {
 

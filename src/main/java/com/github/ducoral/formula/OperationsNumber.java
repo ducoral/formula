@@ -8,7 +8,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static com.github.ducoral.formula.Formula.Builder;
-import static com.github.ducoral.formula.FormulaDefaults.*;
+import static com.github.ducoral.formula.FormulaDefaults.ASTERISK;
+import static com.github.ducoral.formula.FormulaDefaults.EQUAL;
+import static com.github.ducoral.formula.FormulaDefaults.GREATER_THAN;
+import static com.github.ducoral.formula.FormulaDefaults.GREATER_THAN_OR_EQUAL;
+import static com.github.ducoral.formula.FormulaDefaults.LESS_THAN;
+import static com.github.ducoral.formula.FormulaDefaults.LESS_THAN_OR_EQUAL;
+import static com.github.ducoral.formula.FormulaDefaults.MINUS;
+import static com.github.ducoral.formula.FormulaDefaults.NOT_EQUAL;
+import static com.github.ducoral.formula.FormulaDefaults.PLUS;
+import static com.github.ducoral.formula.FormulaDefaults.SLASH;
 
 class OperationsNumber implements Consumer<Builder> {
 
