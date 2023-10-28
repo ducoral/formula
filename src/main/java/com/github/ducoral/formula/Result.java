@@ -66,7 +66,7 @@ public class Result<T> {
                 .append('\t')
                 .append(Utils.fillSpaces(5))
                 .append(Utils.fill('-', exception.position.column()))
-                .append("^\n\t");
+                .append("^\n");
 
         return message.toString();
     }

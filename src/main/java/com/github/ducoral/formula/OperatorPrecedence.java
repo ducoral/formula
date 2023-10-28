@@ -30,8 +30,6 @@ class OperatorPrecedence {
     }
 
     Set<String> getOperatorsOfPrecedence(int precedence) {
-        return hasOperatorsWithPrecedence(precedence)
-                ? operators.get(precedence)
-                : Set.of();
+        return operators.get(precedence);
     }
 }

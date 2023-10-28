@@ -10,6 +10,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class TestUtils {
 
+    static final String FORMATTED_MESSAGE = "Error:\n\t%s\n\nPosition:\n\t 1 | %s\n\t     %s\n";
+
+    static String formatMessage(String message, String expression, int position) {
+        var offset = position > 0
+                ? new String(new char[position]).replace('\0', '-')
+                : "";
+        return String.format(FORMATTED_MESSAGE, message, expression, offset + "^");
+    }
+
     static Result<Expression> assertParse(Formula formula, String input) {
         var result = formula.parse(input);
         if (!result.isOK())

@@ -1,5 +1,6 @@
 package integration;
 
+import com.github.ducoral.formula.Expression;
 import com.github.ducoral.formula.Formula;
 import com.github.ducoral.formula.Operation;
 import com.github.ducoral.formula.Operator;
@@ -28,6 +29,7 @@ import static com.github.ducoral.formula.FormulaExceptionType.INVALID_ESCAPE;
 import static com.github.ducoral.formula.FormulaExceptionType.INVALID_TOKEN;
 import static com.github.ducoral.formula.FormulaExceptionType.STRING_NOT_CLOSED_CORRECTLY;
 import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
+import static integration.TestUtils.*;
 import static integration.TestUtils.assertParse;
 import static integration.TestUtils.assertValueType;
 import static integration.TestUtils.pos;
@@ -132,50 +134,49 @@ class ParseTest {
         } else
             fail("NumberLiteral expected");
 
-        unaryOperation = assertValueType(assertParse(formula, "@@ 1234.1234"), UnaryOperation.class);
+        unaryOperation = assertValueType(assertParse(formula, "@@ 12.34"), UnaryOperation.class);
         assertEquals(Position.ZERO, unaryOperation.position());
         assertEquals(atAt.lexeme(), unaryOperation.operator());
-        assertEquals("@@ 1234.1234", unaryOperation.toString());
+        assertEquals("@@ 12.34", unaryOperation.toString());
         if (unaryOperation.right() instanceof NumberLiteral number) {
             assertEquals(pos(3), number.position());
-            assertEquals(new BigDecimal("1234.1234"), number.value());
+            assertEquals(new BigDecimal("12.34"), number.value());
         } else
             fail("NumberLiteral expected");
     }
 
     @Test
     void testBinaryOperation() {
-        var binaryOperation = assertValueType(assertParse(formula, "1234 op123 1234"), BinaryOperation.class);
+        var binaryOperation = assertValueType(assertParse(formula, "12 op123 34"), BinaryOperation.class);
         assertEquals(Position.ZERO, binaryOperation.position());
         assertEquals(op123.lexeme(), binaryOperation.operator());
-        assertEquals("1234 op123 1234", binaryOperation.toString());
+        assertEquals("12 op123 34", binaryOperation.toString());
+        assertNumberLiteral(binaryOperation.left(), 0, new BigInteger("12"));
+        assertNumberLiteral(binaryOperation.right(), 9, new BigInteger("34"));
 
-        if (binaryOperation.left() instanceof NumberLiteral number) {
-            assertEquals(pos(0), number.position());
-            assertEquals(new BigInteger("1234"), number.value());
-        } else
-            fail("NumberLiteral expected");
-
-        if (binaryOperation.right() instanceof NumberLiteral number) {
-            assertEquals(pos(11), number.position());
-            assertEquals(new BigInteger("1234"), number.value());
-        } else
-            fail("NumberLiteral expected");
-
-        binaryOperation = assertValueType(assertParse(formula, "(1234.1234 @@ 1234.1234)"), BinaryOperation.class);
-        assertEquals(pos(1), binaryOperation.position());
+        binaryOperation = assertValueType(assertParse(formula, "12.34 @@ 56.78"), BinaryOperation.class);
+        assertEquals(pos(0), binaryOperation.position());
         assertEquals(atAt.lexeme(), binaryOperation.operator());
-        assertEquals("1234.1234 @@ 1234.1234", binaryOperation.toString());
+        assertEquals("12.34 @@ 56.78", binaryOperation.toString());
+        assertNumberLiteral(binaryOperation.left(), 0, new BigDecimal("12.34"));
+        assertNumberLiteral(binaryOperation.right(), 9, new BigDecimal("56.78"));
 
-        if (binaryOperation.left() instanceof NumberLiteral number) {
-            assertEquals(pos(1), number.position());
-            assertEquals(new BigDecimal("1234.1234"), number.value());
+        binaryOperation = assertValueType(assertParse(formula, "12.34 @@ 56.78 op123 90.12"), BinaryOperation.class);
+        assertEquals(pos(0), binaryOperation.position());
+        assertEquals(atAt.lexeme(), binaryOperation.operator());
+        assertEquals("12.34 @@ (56.78 op123 90.12)", binaryOperation.toString());
+        assertNumberLiteral(binaryOperation.left(), 0, new BigDecimal("12.34"));
+        if (binaryOperation.right() instanceof BinaryOperation operation) {
+            assertNumberLiteral(operation.left(), 9, new BigDecimal("56.78"));
+            assertNumberLiteral(operation.right(), 21, new BigDecimal("90.12"));
         } else
-            fail("NumberLiteral expected");
+            fail("BinaryOperation expected");
+    }
 
-        if (binaryOperation.right() instanceof NumberLiteral number) {
-            assertEquals(pos(14), number.position());
-            assertEquals(new BigDecimal("1234.1234"), number.value());
+    void assertNumberLiteral(Expression expression, int position, Object value) {
+        if (expression instanceof NumberLiteral number) {
+            assertEquals(pos(position), number.position());
+            assertEquals(value, number.value());
         } else
             fail("NumberLiteral expected");
     }
@@ -188,8 +189,9 @@ class ParseTest {
         assertEquals(List.of(), functionCall.parameters());
         assertEquals("fn()", functionCall.toString());
 
-        //                                                                   1         2         3         4
-        //                                                         0123456789012345678901234567890123456789012
+        //           1         2         3         4
+        // 0123456789012345678901234567890123456789012
+        // fn(1, 1.2, 'str1', `str2`, "str3", ident)
         functionCall = assertValueType(assertParse(formula, "fn(1, 1.2, 'str1', `str2`, \"str3\", ident)"), FunctionCall.class);
         assertEquals(Position.ZERO, functionCall.position());
         assertEquals("fn", functionCall.name());
@@ -203,8 +205,9 @@ class ParseTest {
         assertEquals(parameters, functionCall.parameters());
         assertEquals("fn(1, 1.2, \"str1\", \"str2\", \"str3\", ident)", functionCall.toString());
 
-        //                                                                   1         2         3         4
-        //                                                         01234567890123456789012345678901234567890123
+        //           1         2         3         4
+        // 01234567890123456789012345678901234567890123
+        // fn(fn2(1), fn3(fn4(1.2), fn5(`str`), ident))
         functionCall = assertValueType(assertParse(formula, "fn(fn2(1), fn3(fn4(1.2), fn5(`str`), ident))"), FunctionCall.class);
         assertEquals(Position.ZERO, functionCall.position());
         assertEquals("fn", functionCall.name());
@@ -231,6 +234,9 @@ class ParseTest {
             assertEquals(INVALID_CHARACTER, result.exception().type);
             assertEquals("The character ? is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The character ? is invalid", "?", 0),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -240,24 +246,36 @@ class ParseTest {
             assertEquals(INVALID_DECIMAL_NUMBER, result.exception().type);
             assertEquals("The decimal number . is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The decimal number . is invalid", ".", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse(".2E+");
             assertFalse(result.isOK());
             assertEquals(INVALID_DECIMAL_NUMBER, result.exception().type);
             assertEquals("The decimal number .2E+ is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The decimal number .2E+ is invalid", ".2E+", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("1.e+");
             assertFalse(result.isOK());
             assertEquals(INVALID_DECIMAL_NUMBER, result.exception().type);
             assertEquals("The decimal number 1.e+ is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The decimal number 1.e+ is invalid", "1.e+", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("1 @ 2.E+");
             assertFalse(result.isOK());
             assertEquals(INVALID_DECIMAL_NUMBER, result.exception().type);
             assertEquals("The decimal number 2.E+ is invalid", result.exception().getMessage());
             assertEquals(pos(4), result.exception().position);
+            assertEquals(
+                    formatMessage("The decimal number 2.E+ is invalid", "1 @ 2.E+", 4),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -267,54 +285,81 @@ class ParseTest {
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\' is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\' is invalid", "\"\\'\"", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("\"\\`\"");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\` is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\` is invalid", "\"\\`\"", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("'\\\"'");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\\" is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\\" is invalid", "'\\\"'", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("'\\`'");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\` is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\` is invalid", "'\\`'", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("`\\'`");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\' is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\' is invalid", "`\\'`", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("`\\\"`");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\\" is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\\" is invalid", "`\\\"`", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("\"\\1\"");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\1 is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\1 is invalid", "\"\\1\"", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("'\\2'");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\2 is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\2 is invalid", "'\\2'", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("`\\3`");
             assertFalse(result.isOK());
             assertEquals(INVALID_ESCAPE, result.exception().type);
             assertEquals("The escape \\3 is invalid", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The escape \\3 is invalid", "`\\3`", 0),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -324,18 +369,27 @@ class ParseTest {
             assertEquals(STRING_NOT_CLOSED_CORRECTLY, result.exception().type);
             assertEquals("The string \"abc was not closed correctly", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The string \"abc was not closed correctly", "\"abc", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("'abc");
             assertFalse(result.isOK());
             assertEquals(STRING_NOT_CLOSED_CORRECTLY, result.exception().type);
             assertEquals("The string 'abc was not closed correctly", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The string 'abc was not closed correctly", "'abc", 0),
+                    result.formattedErrorMessage());
 
             result = formula.parse("`abc");
             assertFalse(result.isOK());
             assertEquals(STRING_NOT_CLOSED_CORRECTLY, result.exception().type);
             assertEquals("The string `abc was not closed correctly", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The string `abc was not closed correctly", "`abc", 0),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -345,6 +399,9 @@ class ParseTest {
             assertEquals(INVALID_TOKEN, result.exception().type);
             assertEquals("The token , is invalid", result.exception().getMessage());
             assertEquals(pos(5), result.exception().position);
+            assertEquals(
+                    formatMessage("The token , is invalid", "1 @@ ,", 5),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -353,17 +410,23 @@ class ParseTest {
             assertFalse(result.isOK());
             assertEquals(UNEXPECTED_TOKEN, result.exception().type);
             assertEquals(
-                    "The token INTEGER was not expected. The token [EOF, OPERATOR] was expected in its place.",
+                    "The token INTEGER was not expected. The token [EOF, OPERATOR] was expected in its place",
                     result.exception().getMessage());
             assertEquals(pos(2), result.exception().position);
+            var formattedMessage =
+                    formatMessage("The token INTEGER was not expected. The token [EOF, OPERATOR] was expected in its place", "1 2", 2);
+            assertEquals(formattedMessage, result.formattedErrorMessage());
 
             result = formula.parse("(1 2");
             assertFalse(result.isOK());
             assertEquals(UNEXPECTED_TOKEN, result.exception().type);
             assertEquals(
-                    "The token 2 was not expected. The token ) was expected in its place.",
+                    "The token 2 was not expected. The token ) was expected in its place",
                     result.exception().getMessage());
             assertEquals(pos(3), result.exception().position);
+            formattedMessage =
+                    formatMessage("The token 2 was not expected. The token ) was expected in its place", "(1 2", 3);
+            assertEquals(formattedMessage, result.formattedErrorMessage());
         }
     }
 }

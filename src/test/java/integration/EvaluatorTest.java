@@ -20,6 +20,8 @@ import java.util.function.Function;
 
 import static com.github.ducoral.formula.FormulaExceptionType.FUNCTION_NOT_DEFINED;
 import static com.github.ducoral.formula.FormulaExceptionType.OPERATION_NOT_SUPPORTED;
+import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
+import static integration.TestUtils.formatMessage;
 import static integration.TestUtils.pos;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -68,6 +70,56 @@ class EvaluatorTest {
         var result = formula.evaluate("ident", scope);
         assertTrue(result.isOK());
         assertTrue(result.value().isNull());
+    }
+
+    @Test
+    void testEvaluateBooleanFromIdentifier() {
+        var escope = Map.of(
+                "true", (Object) Boolean.TRUE,
+                "false", Boolean.FALSE);
+
+        var result = formula.evaluate("true", escope);
+        assertTrue(result.isOK());
+        assertFalse(result.value().isNull());
+        assertFalse(result.value().isNumber());
+        assertFalse(result.value().isInteger());
+        assertTrue(result.value().isTruthful());
+        assertTrue(result.value().isType(Boolean.class));
+        assertFalse(result.value().isString());
+        assertEquals(Boolean.TRUE, result.value().asType(Boolean.class));
+        assertEquals(Boolean.class, result.value().getType());
+        assertEquals("java.lang.Boolean", result.value().getTypeName());
+        assertEquals("true", result.value().toString());
+
+        result = formula.evaluate("false", escope);
+        assertTrue(result.isOK());
+        assertFalse(result.value().isNull());
+        assertFalse(result.value().isNumber());
+        assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTruthful());
+        assertTrue(result.value().isType(Boolean.class));
+        assertFalse(result.value().isString());
+        assertEquals(Boolean.FALSE, result.value().asType(Boolean.class));
+        assertEquals(Boolean.class, result.value().getType());
+        assertEquals("java.lang.Boolean", result.value().getTypeName());
+        assertEquals("false", result.value().toString());
+    }
+
+    @Test
+    void testEvaluateObjectFromIdentifier() {
+        var object = new Object();
+        var result = formula.evaluate("object", Map.of("object", object));
+        assertTrue(result.isOK());
+        assertFalse(result.value().isNull());
+        assertFalse(result.value().isNumber());
+        assertFalse(result.value().isInteger());
+        assertTrue(result.value().isTruthful());
+        assertTrue(result.value().isType(Object.class));
+        assertFalse(result.value().isString());
+        assertEquals(object, result.value().asType(Object.class));
+        assertEquals(Object.class, result.value().getType());
+        assertEquals("java.lang.Object", result.value().getTypeName());
+        assertEquals("java.lang.Object@" + Integer.toHexString(object.hashCode()), result.value().toString());
     }
 
     @Test
@@ -345,12 +397,23 @@ class EvaluatorTest {
         }
 
         @Test
+        void testEvaluateWithParserException() {
+            var result = formula.evaluate("foo(123");
+            assertFalse(result.isOK());
+            assertEquals(UNEXPECTED_TOKEN, result.exception().type);
+            assertEquals(pos(7), result.exception().position);
+        }
+
+        @Test
         void testFunctionNotDefined() {
             var result = formula.evaluate("foo(123)");
             assertFalse(result.isOK());
             assertEquals(FUNCTION_NOT_DEFINED, result.exception().type);
             assertEquals("The function foo() has not been defined", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The function foo() has not been defined", "foo(123)", 0),
+                    result.formattedErrorMessage());
         }
 
         @Test
@@ -360,18 +423,27 @@ class EvaluatorTest {
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
             assertEquals("The operation BigInteger @ BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The operation BigInteger @ BigInteger is not supported", "1 @ 2", 0),
+                    result.formattedErrorMessage());
 
             result = formula.evaluate("@ 2");
             assertFalse(result.isOK());
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
             assertEquals("The operation @ BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The operation @ BigInteger is not supported", "@ 2", 0),
+                    result.formattedErrorMessage());
 
             result = formula.evaluate("'a' @ 2");
             assertFalse(result.isOK());
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
             assertEquals("The operation String @ BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
+            assertEquals(
+                    formatMessage("The operation String @ BigInteger is not supported", "'a' @ 2", 0),
+                    result.formattedErrorMessage());
         }
     }
 }
