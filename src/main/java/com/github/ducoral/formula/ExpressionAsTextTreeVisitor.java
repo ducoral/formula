@@ -2,6 +2,8 @@ package com.github.ducoral.formula;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -135,17 +137,27 @@ class ExpressionAsTextTreeVisitor implements Visitor {
         var doubleQuoteFlag = new AtomicBoolean(false);
         var singleQuoteFlag = new AtomicBoolean(false);
         var crasisFlag = new AtomicBoolean(false);
+
+        var stringDelimiter = new AtomicReference<Character>('.');
+        BiConsumer<AtomicBoolean, Character> stringChecker = (flag, character) -> {
+            if (!delimiterFlag.get()) {
+                flag.set(true);
+                stringDelimiter.set(character);
+            } else if (stringDelimiter.get() == character)
+                flag.set(false);
+        };
+
         return character -> {
             if (character == '(')
                 parentesisCount.incrementAndGet();
             else if (character == ')')
                 parentesisCount.decrementAndGet();
             else if (character == '"')
-                doubleQuoteFlag.set(!doubleQuoteFlag.get());
+                stringChecker.accept(doubleQuoteFlag, character);
             else if (character == '\'')
-                singleQuoteFlag.set(!singleQuoteFlag.get());
+                stringChecker.accept(singleQuoteFlag, character);
             else if (character == '`')
-                crasisFlag.set(!crasisFlag.get());
+                stringChecker.accept(crasisFlag, character);
             delimiterFlag.set(
                     parentesisCount.get() > 0
                             || doubleQuoteFlag.get()

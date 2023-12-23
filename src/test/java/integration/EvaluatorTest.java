@@ -1,10 +1,14 @@
 package integration;
 
 import com.github.ducoral.formula.Formula;
+import com.github.ducoral.formula.FunctionDefinition;
 import com.github.ducoral.formula.Operation;
 import com.github.ducoral.formula.OperationAction;
 import com.github.ducoral.formula.Operator;
+import com.github.ducoral.formula.Parameters;
 import com.github.ducoral.formula.Precedence;
+import com.github.ducoral.formula.Value;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +49,16 @@ class EvaluatorTest {
                         ? "[" + operands.left().asString() + operator + operands.right().asString() + "]"
                         : chain.chain(operands);
 
+        Function<Parameters, Object> joinFunction = parameters ->
+                parameters
+                        .asList()
+                        .stream()
+                        .map(Value::asString)
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("");
+
+        Function<Parameters, Object> invalidFunctionImpl = parameters -> parameters.get(parameters.count() + 1);
+
         formula = Formula.builder()
                 .unaryOperation(new Operation(String.class, sharp, unary.apply(sharp)))
                 .unaryOperation(new Operation(String.class, percent, unary.apply(percent)))
@@ -52,6 +66,8 @@ class EvaluatorTest {
                 .binaryOperation(new Operation(String.class, sharp, binary.apply(sharp)))
                 .binaryOperation(new Operation(String.class, percent, binary.apply(percent)))
                 .binaryOperation(new Operation(String.class, at, binary.apply(at)))
+                .function(new FunctionDefinition("join", joinFunction))
+                .function(new FunctionDefinition("invalid", invalidFunctionImpl))
                 .build();
     }
 
@@ -386,6 +402,19 @@ class EvaluatorTest {
         result = formula.evaluate("'a' % ('b' # ('c' @ 'd'))");
         assertTrue(result.isOK());
         assertEquals("[a%[b#[c@d]]]", result.value().asString());
+    }
+
+    @Test
+    void testEvalutateFunction() {
+        var result = formula.evaluate("join(1, 2, 'abc')");
+        assertTrue(result.isOK());
+        assertEquals("1, 2, abc", result.value().asString());
+
+        result = formula.evaluate("join(a, b, c, d)", Map.of("a", 1, "b", 2, "c", "abc", "d", true));
+        assertTrue(result.isOK());
+        assertEquals("1, 2, abc, true", result.value().asString());
+
+        Assertions.assertThrowsExactly(IndexOutOfBoundsException.class, () -> formula.evaluate("invalid()"));
     }
 
     @Nested

@@ -1,5 +1,10 @@
 package com.github.ducoral.formula;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Parameters {
@@ -21,5 +26,12 @@ public class Parameters {
         if (index < 0 || index >= count)
             throw new IndexOutOfBoundsException(index);
         return valueFunction.apply(index);
+    }
+
+    public List<Value> asList() {
+        var list = new ArrayList<Value>();
+        for (var index = 0; index < count; index++)
+            list.add(get(index));
+        return list;
     }
 }
