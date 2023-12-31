@@ -12,6 +12,11 @@ class TestUtils {
 
     static final String FORMATTED_MESSAGE = "Error:\n\t%s\n\nPosition:\n\t 1 | %s\n\t     %s\n";
 
+    static void assertOK(Result<?> result) {
+        if (!result.isOK())
+            fail(result.formattedErrorMessage());
+    }
+
     static String formatMessage(String message, String expression, int position) {
         var offset = position > 0
                 ? new String(new char[position]).replace('\0', '-')

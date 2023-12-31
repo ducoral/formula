@@ -47,15 +47,15 @@ public class Formula {
         assert input != null;
 
         if (input.isEmpty())
-            return new Result<>(new Expression.Empty(Position.NULL));
+            return Result.ofValue(new Expression.Empty(Position.NULL));
 
         try {
             var tokenizer = new Tokenizer(new CharReader(input), operatorParser, operatorPrecedence);
             var expression = new ExpressionParser(tokenizer, operatorPrecedence)
                     .parse();
-            return new Result<>(expression);
+            return Result.ofValue(expression);
         } catch (FormulaException exception) {
-            return new Result<>(input, exception);
+            return Result.ofException(input, exception);
         }
     }
 
@@ -67,17 +67,17 @@ public class Formula {
         assert input != null;
 
         if (input.isEmpty())
-            return new Result<>(new Value(null));
+            return Result.ofValue(new Value(null));
 
         try {
             var parseResult = parse(input);
             if (!parseResult.isOK())
-                return new Result<>(parseResult);
+                return Result.ofInvalid(parseResult);
             var value = new Evaluator(this, scope)
                     .evaluate(parseResult.value());
-            return new Result<>(value);
+            return Result.ofValue(value);
         } catch (FormulaException exception) {
-            return new Result<>(input, exception);
+            return Result.ofException(input, exception);
         }
     }
 
@@ -85,11 +85,11 @@ public class Formula {
         assert input != null;
 
         if (input.isEmpty())
-            return new Result<>("");
+            return Result.ofValue("");
 
         var parseResult = parse(input);
         if (!parseResult.isOK())
-            return new Result<>(parseResult);
+            return Result.ofInvalid(parseResult);
 
         var expression = parseResult.value();
         var asStr = ExpressionAsStringVisitor.asString(expression);
@@ -111,7 +111,7 @@ public class Formula {
                     .append("| ")
                     .append(asTextTree[line]);
 
-        return new Result<>(builder.toString());
+        return Result.ofValue(builder.toString());
     }
 
     public void explorer() {

@@ -81,7 +81,6 @@ class Evaluator implements Visitor {
     private static Operands operandsOfUnary(UnaryOperation operation, Value value) {
         return new Operands(
                 operation.position(),
-                () -> null,
                 () -> value,
                 operands -> String.format(
                         "%s %s",

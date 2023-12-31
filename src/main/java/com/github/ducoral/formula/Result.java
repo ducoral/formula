@@ -8,22 +8,22 @@ public class Result<T> {
 
     private final String formattedErrorMessage;
 
-    Result(T value) {
+    public static <T> Result<T> ofValue(T value) {
+        return new Result<>(value, null, null);
+    }
+
+    public static <T> Result<T> ofException(String input, FormulaException exception) {
+        return new Result<>(null, exception, formatErrorMessage(input, exception));
+    }
+
+    public static <T> Result<T> ofInvalid(Result<?> invalidResult) {
+        return new Result<>(null, invalidResult.exception, invalidResult.formattedErrorMessage);
+    }
+
+    private Result(T value, FormulaException exception, String formattedErrorMessage) {
         this.value = value;
-        exception = null;
-        formattedErrorMessage = null;
-    }
-
-    Result(String input, FormulaException exception) {
-        value = null;
         this.exception = exception;
-        formattedErrorMessage = formatErrorMessage(input, exception);
-    }
-
-    Result(Result<?> from) {
-        value = null;
-        exception = from.exception;
-        formattedErrorMessage = from.formattedErrorMessage;
+        this.formattedErrorMessage = formattedErrorMessage;
     }
 
     public boolean isOK() {

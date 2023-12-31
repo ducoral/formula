@@ -29,9 +29,9 @@ import static com.github.ducoral.formula.FormulaExceptionType.INVALID_ESCAPE;
 import static com.github.ducoral.formula.FormulaExceptionType.INVALID_TOKEN;
 import static com.github.ducoral.formula.FormulaExceptionType.STRING_NOT_CLOSED_CORRECTLY;
 import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
-import static integration.TestUtils.*;
 import static integration.TestUtils.assertParse;
 import static integration.TestUtils.assertValueType;
+import static integration.TestUtils.formatMessage;
 import static integration.TestUtils.pos;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -427,6 +427,14 @@ class ParseTest {
             formattedMessage =
                     formatMessage("The token 2 was not expected. The token ) was expected in its place", "(1 2", 3);
             assertEquals(formattedMessage, result.formattedErrorMessage());
+        }
+
+        @Test
+        void testLineNumberOfExpressionError() {
+            var result = formula.parse("1 \n op123 1 \n\n @@ 4 \n 5");
+            assertFalse(result.isOK());
+            assertEquals(UNEXPECTED_TOKEN, result.exception().type);
+            assertEquals(new Position(22, 4, 2), result.exception().position);
         }
     }
 }

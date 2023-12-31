@@ -25,6 +25,7 @@ import java.util.function.Function;
 import static com.github.ducoral.formula.FormulaExceptionType.FUNCTION_NOT_DEFINED;
 import static com.github.ducoral.formula.FormulaExceptionType.OPERATION_NOT_SUPPORTED;
 import static com.github.ducoral.formula.FormulaExceptionType.UNEXPECTED_TOKEN;
+import static integration.TestUtils.assertOK;
 import static integration.TestUtils.formatMessage;
 import static integration.TestUtils.pos;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,7 +75,7 @@ class EvaluatorTest {
     @Test
     void testEvaluateEmpty() {
         var result = formula.evaluate("");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertTrue(result.value().isNull());
     }
 
@@ -84,7 +85,7 @@ class EvaluatorTest {
         scope.put("ident", null);
 
         var result = formula.evaluate("ident", scope);
-        assertTrue(result.isOK());
+        assertOK(result);
         assertTrue(result.value().isNull());
     }
 
@@ -95,7 +96,7 @@ class EvaluatorTest {
                 "false", Boolean.FALSE);
 
         var result = formula.evaluate("true", escope);
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -108,7 +109,7 @@ class EvaluatorTest {
         assertEquals("true", result.value().toString());
 
         result = formula.evaluate("false", escope);
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -125,7 +126,7 @@ class EvaluatorTest {
     void testEvaluateObjectFromIdentifier() {
         var object = new Object();
         var result = formula.evaluate("object", Map.of("object", object));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -141,7 +142,7 @@ class EvaluatorTest {
     @Test
     void testEvaluateNumber() {
         var result = formula.evaluate("0");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -155,7 +156,7 @@ class EvaluatorTest {
         assertEquals("0", result.value().toString());
 
         result = formula.evaluate("'0'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -169,7 +170,7 @@ class EvaluatorTest {
         assertEquals("0", result.value().toString());
 
         result = formula.evaluate("123");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -183,7 +184,7 @@ class EvaluatorTest {
         assertEquals("123", result.value().toString());
 
         result = formula.evaluate("'123'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -197,7 +198,7 @@ class EvaluatorTest {
         assertEquals("123", result.value().toString());
 
         result = formula.evaluate("0.0");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -211,7 +212,7 @@ class EvaluatorTest {
         assertEquals("0.0", result.value().toString());
 
         result = formula.evaluate("'0.0'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -225,7 +226,7 @@ class EvaluatorTest {
         assertEquals("0.0", result.value().toString());
 
         result = formula.evaluate("123.123");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -239,7 +240,7 @@ class EvaluatorTest {
         assertEquals("123.123", result.value().toString());
 
         result = formula.evaluate("'123.123'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -256,7 +257,7 @@ class EvaluatorTest {
     @Test
     void testEvaluateNumberFromIdentifier() {
         var result = formula.evaluate("ident", Map.of("ident", Byte.valueOf("1")));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -269,7 +270,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", Short.valueOf("1")));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -282,7 +283,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", Integer.valueOf("1")));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -295,7 +296,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", Long.valueOf("1")));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -308,7 +309,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", new AtomicInteger(1)));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -321,7 +322,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", new AtomicLong(1)));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
@@ -334,7 +335,7 @@ class EvaluatorTest {
         assertEquals("1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", 1.1f));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -347,7 +348,7 @@ class EvaluatorTest {
         assertEquals("1.1", result.value().toString());
 
         result = formula.evaluate("ident", Map.of("ident", 1.1d));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
@@ -363,7 +364,7 @@ class EvaluatorTest {
     @Test
     void testEvaluateString() {
         var result = formula.evaluate("''");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertFalse(result.value().isNull());
         assertTrue(result.value().isString());
         assertFalse(result.value().isNumber());
@@ -384,34 +385,34 @@ class EvaluatorTest {
     void testEvaluateOperations() {
         // precedence: % -> # -> @
         var result = formula.evaluate("@'a'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("[@a]", result.value().asString());
 
         result = formula.evaluate("#'a' % @'b'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("[[#a]%[@b]]", result.value().asString());
 
         result = formula.evaluate("'a' % 'b' # 'c' @ 'd'");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("[[[a%b]#c]@d]", result.value().asString());
 
         result = formula.evaluate("'a' % 'b' # ('c' @ 'd')");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("[[a%b]#[c@d]]", result.value().asString());
 
         result = formula.evaluate("'a' % ('b' # ('c' @ 'd'))");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("[a%[b#[c@d]]]", result.value().asString());
     }
 
     @Test
     void testEvalutateFunction() {
         var result = formula.evaluate("join(1, 2, 'abc')");
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("1, 2, abc", result.value().asString());
 
         result = formula.evaluate("join(a, b, c, d)", Map.of("a", 1, "b", 2, "c", "abc", "d", true));
-        assertTrue(result.isOK());
+        assertOK(result);
         assertEquals("1, 2, abc, true", result.value().asString());
 
         Assertions.assertThrowsExactly(IndexOutOfBoundsException.class, () -> formula.evaluate("invalid()"));

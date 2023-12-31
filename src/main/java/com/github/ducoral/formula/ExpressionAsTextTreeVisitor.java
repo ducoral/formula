@@ -256,6 +256,4 @@ class ExpressionAsTextTreeVisitor implements Visitor {
             newStrs[index] = spaces;
         return newStrs;
     }
-
-
 }

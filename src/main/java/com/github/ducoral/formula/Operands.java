@@ -20,6 +20,13 @@ public class Operands {
         this.toString = toString;
     }
 
+    Operands(Position position, Supplier<Value> right, Function<Operands, String> toString) {
+        this.position = position;
+        this.left = null;
+        this.right = right;
+        this.toString = toString;
+    }
+
     public Value left() {
         return left.get();
     }
