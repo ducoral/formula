@@ -114,10 +114,6 @@ public class Formula {
         return Result.ofValue(builder.toString());
     }
 
-    public void explorer() {
-        ExpressionExplorer.show(this);
-    }
-
     public static class Builder {
 
         final Map<String, Function<Parameters, Object>> functions = new HashMap<>();

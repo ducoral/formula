@@ -18,6 +18,7 @@ import static com.github.ducoral.formula.FormulaDefaults.MINUS;
 import static com.github.ducoral.formula.FormulaDefaults.NOT_EQUAL;
 import static com.github.ducoral.formula.FormulaDefaults.PLUS;
 import static com.github.ducoral.formula.FormulaDefaults.SLASH;
+import static java.math.RoundingMode.UNNECESSARY;
 
 class OperationsNumber implements Consumer<Builder> {
 
@@ -47,13 +48,10 @@ class OperationsNumber implements Consumer<Builder> {
             Function<BigInteger, Object> integerAction,
             Function<BigDecimal, Object> decimalAction) {
 
-        return (operands, chainer) -> {
-            if (operands.right().isNumber())
-                return operands.right().isInteger()
+        return (operands, chainer) ->
+                operands.right().isInteger()
                         ? integerAction.apply(operands.right().asBigInteger())
                         : decimalAction.apply(operands.right().asBigDecimal());
-            return chainer.chain(operands);
-        };
     }
 
     private static OperationAction operateBinary(
@@ -61,10 +59,17 @@ class OperationsNumber implements Consumer<Builder> {
             BiFunction<BigDecimal, BigDecimal, Object> decimalAction) {
 
         return (operands, chainer) -> {
-            if (operands.right().isNumber())
-                return operands.left().isInteger() && operands.right().isInteger()
-                        ? integerAction.apply(operands.left().asBigInteger(), operands.right().asBigInteger())
-                        : decimalAction.apply(operands.left().asBigDecimal(), operands.right().asBigDecimal());
+            if (operands.right().isNumber()) {
+                if (operands.left().isInteger() && operands.right().isInteger())
+                    return integerAction.apply(operands.left().asBigInteger(), operands.right().asBigInteger());
+
+                var left = operands.left().asBigDecimal();
+                var right = operands.right().asBigDecimal();
+                var scale = Math.max(left.scale(), right.scale());
+                left = left.setScale(scale, UNNECESSARY);
+                right = right.setScale(scale, UNNECESSARY);
+                return decimalAction.apply(left, right);
+            }
             return chainer.chain(operands);
         };
     }

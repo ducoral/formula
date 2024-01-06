@@ -17,6 +17,12 @@ public class Value {
         return value == null;
     }
 
+    public boolean isTrue() {
+        if (value instanceof Boolean booleanValue)
+            return booleanValue;
+        return false;
+    }
+
     public boolean isTruthful() {
         if (value instanceof Boolean booleanValue)
             return booleanValue;
@@ -40,6 +46,10 @@ public class Value {
                 || isType(BigInteger.class)
                 || isType(AtomicInteger.class)
                 || isType(AtomicLong.class);
+    }
+
+    public boolean isDecimal() {
+        return isNumber() && !isInteger();
     }
 
     public boolean isString() {
@@ -76,6 +86,10 @@ public class Value {
 
     public String getTypeName() {
         return value == null ? null : value.getClass().getName();
+    }
+
+    public Object asObject() {
+        return value;
     }
 
     @Override

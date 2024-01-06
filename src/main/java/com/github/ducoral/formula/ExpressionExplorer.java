@@ -77,6 +77,12 @@ class ExpressionExplorer {
         frame.setVisible(true);
     }
 
+    public static void showForDefaultOperations() {
+        show(Formula.builder()
+                .configure(FormulaDefaults.OPERATIONS_DEFAULT)
+                .build());
+    }
+
     private static Runnable evaluateRunnable(
             AtomicBoolean loading,
             Formula formula,
@@ -113,35 +119,6 @@ class ExpressionExplorer {
                 resultPane.setForeground(Color.RED);
             }
         };
-    }
-
-    private static void formatErrorMessage(JEditorPane inputPane, JEditorPane resultPane, FormulaException e) {
-        var message = new StringBuilder(Strings.get("error"))
-                .append(":\n\t")
-                .append(e.getMessage())
-                .append("\n\n")
-                .append(Strings.get("position"))
-                .append(":\n");
-
-        var lines = inputPane.getText().split("\\n");
-        var line = 0;
-        while (line < lines.length) {
-            message
-                    .append('\t')
-                    .append(Utils.rightAlign(String.valueOf(line + 1), 2))
-                    .append(" | ")
-                    .append(lines[line])
-                    .append('\n');
-            line++;
-        }
-
-        message
-                .append('\t')
-                .append(Utils.fillSpaces(5))
-                .append(Utils.fill('-', e.position.column()))
-                .append("^\n\t");
-
-        resultPane.setText(message.toString());
     }
 
     private static void saveData() {
@@ -410,5 +387,9 @@ class ExpressionExplorer {
             identifierField.setText(identifier);
             valueField.setText(String.valueOf(value));
         }
+    }
+
+    public static void main(String[] args) {
+        showForDefaultOperations();
     }
 }

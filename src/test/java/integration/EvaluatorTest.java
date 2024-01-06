@@ -42,6 +42,8 @@ class EvaluatorTest {
 
     @BeforeEach
     void beforeEach() {
+        Locale.setDefault(Locale.ENGLISH);
+
         Function<Operator, OperationAction> unary = (operator) ->
                 (operands, chain) -> "[" + operator + operands.right().asString() + "]";
 
@@ -100,6 +102,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertTrue(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Boolean.class));
         assertFalse(result.value().isString());
@@ -130,6 +133,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Object.class));
         assertFalse(result.value().isString());
@@ -160,6 +164,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertFalse(result.value().isType(BigInteger.class));
         assertTrue(result.value().isString());
@@ -174,6 +179,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(BigInteger.class));
         assertFalse(result.value().isString());
@@ -188,6 +194,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertFalse(result.value().isType(BigInteger.class));
         assertTrue(result.value().isString());
@@ -202,6 +209,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertFalse(result.value().isTruthful());
         assertTrue(result.value().isType(BigDecimal.class));
         assertFalse(result.value().isString());
@@ -216,6 +224,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertFalse(result.value().isType(BigDecimal.class));
         assertTrue(result.value().isString());
@@ -230,6 +239,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(BigDecimal.class));
         assertFalse(result.value().isString());
@@ -244,6 +254,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertFalse(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertFalse(result.value().isType(BigDecimal.class));
         assertTrue(result.value().isString());
@@ -261,6 +272,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Byte.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -274,6 +286,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Short.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -287,6 +300,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Integer.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -300,6 +314,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Long.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -313,6 +328,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(AtomicInteger.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -326,6 +342,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertTrue(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(AtomicLong.class));
         assertEquals(new BigInteger("1"), result.value().asBigInteger());
@@ -339,6 +356,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Float.class));
         assertEquals(new BigDecimal("1.1"), result.value().asBigDecimal());
@@ -352,6 +370,7 @@ class EvaluatorTest {
         assertFalse(result.value().isNull());
         assertTrue(result.value().isNumber());
         assertFalse(result.value().isInteger());
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
         assertTrue(result.value().isType(Double.class));
         assertEquals(new BigDecimal("1.1"), result.value().asBigDecimal());
@@ -378,6 +397,7 @@ class EvaluatorTest {
         assertEquals("", result.value().toString());
 
         result = formula.evaluate("'abc'");
+        assertFalse(result.value().isTrue());
         assertTrue(result.value().isTruthful());
     }
 
@@ -421,11 +441,6 @@ class EvaluatorTest {
     @Nested
     class ExceptionTest {
 
-        @BeforeEach
-        void beforeEach() {
-            Locale.setDefault(Locale.ENGLISH);
-        }
-
         @Test
         void testEvaluateWithParserException() {
             var result = formula.evaluate("foo(123");
@@ -451,28 +466,28 @@ class EvaluatorTest {
             var result = formula.evaluate("1 @ 2");
             assertFalse(result.isOK());
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
-            assertEquals("The operation BigInteger @ BigInteger is not supported", result.exception().getMessage());
+            assertEquals("The operation java.math.BigInteger @ java.math.BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
             assertEquals(
-                    formatMessage("The operation BigInteger @ BigInteger is not supported", "1 @ 2", 0),
+                    formatMessage("The operation java.math.BigInteger @ java.math.BigInteger is not supported", "1 @ 2", 0),
                     result.formattedErrorMessage());
 
             result = formula.evaluate("@ 2");
             assertFalse(result.isOK());
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
-            assertEquals("The operation @ BigInteger is not supported", result.exception().getMessage());
+            assertEquals("The operation @ java.math.BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
             assertEquals(
-                    formatMessage("The operation @ BigInteger is not supported", "@ 2", 0),
+                    formatMessage("The operation @ java.math.BigInteger is not supported", "@ 2", 0),
                     result.formattedErrorMessage());
 
             result = formula.evaluate("'a' @ 2");
             assertFalse(result.isOK());
             assertEquals(OPERATION_NOT_SUPPORTED, result.exception().type);
-            assertEquals("The operation String @ BigInteger is not supported", result.exception().getMessage());
+            assertEquals("The operation java.lang.String @ java.math.BigInteger is not supported", result.exception().getMessage());
             assertEquals(pos(0), result.exception().position);
             assertEquals(
-                    formatMessage("The operation String @ BigInteger is not supported", "'a' @ 2", 0),
+                    formatMessage("The operation java.lang.String @ java.math.BigInteger is not supported", "'a' @ 2", 0),
                     result.formattedErrorMessage());
         }
     }

@@ -85,7 +85,7 @@ class Evaluator implements Visitor {
                 operands -> String.format(
                         "%s %s",
                         operation.operator(),
-                        operands.right().getType().getSimpleName()));
+                        operands.right().getTypeName()));
     }
 
     private static Operands operandsOfBinary(Position position, Value left, String operator, Supplier<Value> rightSupplier) {
@@ -95,8 +95,8 @@ class Evaluator implements Visitor {
                 rightSupplier,
                 operands -> String.format(
                         "%s %s %s",
-                        operands.left().getType().getSimpleName(),
+                        operands.left().getTypeName(),
                         operator,
-                        operands.right().getType().getSimpleName()));
+                        operands.right().getTypeName()));
     }
 }

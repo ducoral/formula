@@ -5,9 +5,11 @@ import java.util.ResourceBundle;
 
 class Strings {
 
-    private final static ResourceBundle resourceBundle = ResourceBundle.getBundle("strings");
-
     static String get(String key, Object... args) {
-        return MessageFormat.format(resourceBundle.getString(key), args);
+        return MessageFormat.format(resourceBundle().getString(key), args);
+    }
+
+    static ResourceBundle resourceBundle() {
+        return ResourceBundle.getBundle("strings");
     }
 }

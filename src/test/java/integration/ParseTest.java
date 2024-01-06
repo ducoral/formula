@@ -46,6 +46,7 @@ class ParseTest {
 
     @BeforeEach
     void beforeEach() {
+        Locale.setDefault(Locale.ENGLISH);
         formula = Formula.builder()
                 .unaryOperation(new Operation(Number.class, op123, (operands, chain) -> null))
                 .unaryOperation(new Operation(Number.class, atAt, (operands, chain) -> null))
@@ -221,11 +222,6 @@ class ParseTest {
 
     @Nested
     class ExceptionTest {
-
-        @BeforeEach
-        void beforeEach() {
-            Locale.setDefault(Locale.ENGLISH);
-        }
 
         @Test
         void testInvalidCharacter() {

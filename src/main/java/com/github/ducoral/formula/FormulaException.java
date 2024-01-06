@@ -6,7 +6,7 @@ public class FormulaException extends RuntimeException {
 
     public final FormulaExceptionType type;
 
-    FormulaException(FormulaExceptionType type, Position position, Object... arguments) {
+    public FormulaException(FormulaExceptionType type, Position position, Object... arguments) {
         super(type.formatMessage(arguments));
         this.type = type;
         this.position = position;
